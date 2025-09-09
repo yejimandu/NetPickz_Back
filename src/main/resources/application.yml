@@ -1,0 +1,14 @@
+spring:
+  application:
+     name : Netpickz_back
+     
+server:
+  servlet:
+    context-path: /
+    
+    
+#springdoc:
+#  swagger-ui:
+#    path :  /swagger-ui.html
+  #api-docs:
+   # path: /home
