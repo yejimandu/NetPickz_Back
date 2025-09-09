@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/movie")
-@Tag(name = "Movie", description = "영화 관련 기능을 제공하는 컨트롤러")
+@Tag(name = "Movie", description = "영화 관련 기능을 제공하는 컨트롤러입니다.")
 public class MovieController {
 
 //	private WebClient
