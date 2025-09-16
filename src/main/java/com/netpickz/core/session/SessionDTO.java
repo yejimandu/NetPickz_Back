@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Builder(toBuilder = true)
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

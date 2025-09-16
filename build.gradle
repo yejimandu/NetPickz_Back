@@ -8,11 +8,11 @@ group = 'com.netpickz'
 version = '0.0.1-SNAPSHOT'
 description = 'netpickz project for Spring Boot'
 
-java {
+/*java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
-}
+}*/
 
 repositories {
 	mavenCentral()

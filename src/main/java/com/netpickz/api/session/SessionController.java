@@ -1,7 +1,5 @@
 package com.netpickz.api.session;
 
-import java.sql.Timestamp;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,14 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.netpickz.common.enumType.SessionType;
-import com.netpickz.core.external.tmdb.TmdbClient;
-import com.netpickz.core.external.tmdb.TmdbGenreListResponse;
 import com.netpickz.core.session.SessionDTO;
 import com.netpickz.core.session.SessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/session")
@@ -27,42 +22,31 @@ import reactor.core.publisher.Mono;
 public class SessionController {
 
 	@Autowired
-	private TmdbClient tmdbClient;
-	
-	@Autowired
 	private SessionService sessionService;
 	
-	@Operation(summary = "추천 API", description = "간단한 OK 응답 테스트")
-	@GetMapping("/")
-	public ResponseEntity<String> session() {
+	// 1. 간단 구현은 해둠 그치만 보완 필요
+	// 2. return 타입 정리 및 session pk 값을 쓸 값 고민  및 값 있는지 없는지 체크 후 있으 면 할당하는 로직 필요.
+	@Operation(summary = "게스트 세션 생성 API", description = "간단한 OK 응답 테스트")
+	@GetMapping("/guest")
+	public ResponseEntity guestSession() throws JsonMappingException, JsonProcessingException {
+		SessionDTO sessionDto = SessionDTO.builder() 
+	            .sessionType(SessionType.Guest)
+//	            .requestToken("test")
+	            .build();
+		sessionService.createSession(sessionDto);
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
-	@Operation(summary = "추천 API", description = "간단한 OK 응답 테스트")
-	@GetMapping("/sdsd")
-	public TmdbGenreListResponse session2() throws JsonMappingException, JsonProcessingException {
-		ResponseEntity<TmdbGenreListResponse> ddd = tmdbClient.getGenreList();
-		System.out.println(ddd);
-		System.out.println(ddd.getBody());
-//		return  new ResponseEntity<>("OK", HttpStatus.OK);
-		return  ddd.getBody();
-	}
-	
-	@Operation(summary = "추천 API", description = "간단한 OK 응답 테스트")
-	@GetMapping("/guestSession")
-	public TmdbGenreListResponse guestSession() throws JsonMappingException, JsonProcessingException {
-//		ResponseEntity<TmdbGenreListResponse> ddd = tmdbClient.createGuestSession();
-//		System.out.println(ddd);
-//		System.out.println(ddd.getBody());
-////		return  new ResponseEntity<>("OK", HttpStatus.OK);
-		SessionDTO session = SessionDTO.builder()  // 자동완성 안되면 직접 타이핑
+	// 1. 간단 구현은 해둠 그치만 보완 필요
+	// 2. return 타입 정리 및 session pk 값을 쓸 값 고민  및 값 있는지 없는지 체크 후 있으 면 할당하는 로직 필요.
+	@Operation(summary = "사용자 세션 생성 테스트 용 ", description = "간단한 OK 응답 테스트")
+	@GetMapping("/user")
+	public ResponseEntity userSession() throws JsonMappingException, JsonProcessingException {
+		SessionDTO sessionDto = SessionDTO.builder() 
 	            .sessionType(SessionType.User)
-	            .requestToken("test")
-	            .sessionId("test-session")
-	            .expireDate(new Timestamp(System.currentTimeMillis()))
 	            .build();
-		sessionService.createSession(dto);
-		return  ddd.getBody();
+		sessionService.createSession(sessionDto);
+		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	

@@ -1,6 +1,7 @@
 package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import com.netpickz.common.entity.CertificationEntity;
 
@@ -11,9 +12,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
