@@ -16,7 +16,7 @@ public class AuthController {
 
 	
 	@Operation(summary = "인증 API", description = "간단한 OK 응답 테스트")
-	@GetMapping("/")
+	@GetMapping("/auth")
 	public ResponseEntity<String> auth() {
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}

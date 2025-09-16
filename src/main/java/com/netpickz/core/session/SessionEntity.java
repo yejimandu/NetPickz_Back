@@ -15,12 +15,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
+@Builder
 @Entity
 @Table(name="session_info")
 public class SessionEntity {
@@ -40,7 +44,7 @@ public class SessionEntity {
     @JoinColumn(name = "user_id", nullable = true)
     private UserEntity userEntity;
 	
-	@Column(name="expires_at")
+	@Column(name="expires_at" , nullable = false )
 	private Timestamp expiresAt;
 	
 	@Column(name="created_at")

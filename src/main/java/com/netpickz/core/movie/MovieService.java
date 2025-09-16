@@ -1,5 +1,7 @@
 package com.netpickz.core.movie;
 
-public class MovieService {
+public interface MovieService {
+
+	void findByMovieId(String movieId);
 
 }
