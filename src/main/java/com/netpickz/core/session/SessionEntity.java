@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name="session_info")
 public class SessionEntity {
@@ -44,7 +44,7 @@ public class SessionEntity {
     @JoinColumn(name = "user_id", nullable = true)
     private UserEntity userEntity;
 	
-	@Column(name="expires_at" , nullable = false )
+	@Column(name="expires_at" , nullable = true )
 	private Timestamp expiresAt;
 	
 	@Column(name="created_at")

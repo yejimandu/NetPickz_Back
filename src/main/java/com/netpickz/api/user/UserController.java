@@ -10,16 +10,18 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController()
-@RequestMapping("/user")
+@RequestMapping("/users")
 @Tag(name = "User", description = "사용자 관련 기능을 제공하는 컨트롤러")
 public class UserController {
 	
@@ -27,8 +29,9 @@ public class UserController {
 	UserRepository userRepository;
 
 	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-	@GetMapping("/")
-	public ResponseEntity<String> getUserInfo() {
+    @Parameter(name = "userId", required = true, description = "사용자 ID")
+	@GetMapping("/{userId}")
+	public ResponseEntity<String> getUserInfo(@RequestParam(name = "userId") String userId) {
 		Optional<UserEntity> ddd = userRepository.findById("yeji3479");
 		System.out.println(ddd);
 		// TODO
@@ -36,17 +39,25 @@ public class UserController {
 	}
 	
 	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-	@PostMapping("/regist")
+	@PostMapping("")
 	public ResponseEntity<String> registUser() {
 		// TODO
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-	@PutMapping("/update")
-	public ResponseEntity<String> updateUser() {
+	@Parameter(name = "userId", required = true, description = "사용자 ID")
+	@PutMapping("/{userId}")
+	public ResponseEntity<String> updateUser(@RequestParam(name = "userId") String userId) {
 		// TODO
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
+	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
+	@Parameter(name = "userId", required = true, description = "사용자 ID")
+	@GetMapping("/{userId}/history")
+	public ResponseEntity<String> historyUser(@RequestParam(name = "userId") String userId) {
+		// TODO
+		return  new ResponseEntity<>("OK", HttpStatus.OK);
+	}
 }

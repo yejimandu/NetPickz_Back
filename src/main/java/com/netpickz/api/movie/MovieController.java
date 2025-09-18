@@ -12,40 +12,51 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.login.LoginController;
+import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.external.tmdb.TmdbGenreListResponse;
 import com.netpickz.core.external.tmdb.TmdbMovieResponse;
+import com.netpickz.core.movie.MovieDTO;
 import com.netpickz.core.movie.MovieService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/movie")
-@Tag(name = "Movie", description = "영화 관련 기능을 제공하는 컨트롤러입니다.")
+@RequestMapping("/movies")
+@Tag(name = "Movies", description = "영화 관련 기능을 제공하는 컨트롤러입니다.")
 public class MovieController {
 
 	@Autowired
 	@Lazy
 	private MovieService movieService;
 
-	
 	@Operation(summary = "영화 정보 조회", description = "영화 아이디 기준으로 영화 정보를 조회합니다.")
-    @Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("/{movieId}")
-	public ResponseEntity<String> getMovieInfo(
-			@RequestParam(name = "movieId") String movieId) {
+    @Parameter(name = "id", required = true, description = "영화 ID")
+	@ApiResponses(value = {
+			@ApiResponse(description = "에러 설명", responseCode = "500" ),
+			@ApiResponse( responseCode = "200",
+				    description = "따봉"
+)
+	})
+	@GetMapping("/{id}")
+	public ResponseEntity<MovieDTO> getMovieInfo(
+			@PathVariable(name = "id") String movieId) {
 		movieService.findByMovieId(movieId);
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		MovieDTO movieDTO = MovieDTO.builder().build();
+		return  new ResponseEntity<>(movieDTO , HttpStatus.OK);
 	}
 	
 	@Operation(summary = "타입별 영화 목록 조회", description = "원하는 영화 목록을 조회합니다.")
-	@GetMapping("/list")
+	@Parameter(name = "category" , description = "영화 카테고리")
+	@GetMapping("")
 	public ResponseEntity<String> getMovieList(   
-			@Parameter(description = "영화 카테고리")
 		    @RequestParam(name = "category") MovieCategory category) {
 		// TODO
 		
@@ -53,59 +64,57 @@ public class MovieController {
 	}
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "원하는 영화를 시청할 수 있는 OTT 목록을 조회합니다.")
-	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("/provider/list")
+	@Parameter(name = "id", required = true, description = "영화 ID")
+	@GetMapping("{id}/providers")
 	public ResponseEntity<String> getMovieProviderList(   
-			@RequestParam(name = "movieId") String movieId) {
+			@PathVariable(name = "id") String movieId) {
 		//TODO 
 		
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	@Operation(summary = "비슷한 영화 목록 조회", description = "영화 ID 기준으로 비슷한 영화 목록을 조회합니다.")
-	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("/similar/list")
+	@Parameter(name = "id", required = true, description = "영화 ID")
+	@GetMapping("/{id}/similar")
 	public ResponseEntity<String> getMovieSimilarListByMovieId(   
-			@RequestParam(name = "movieId") String movieId) {
+			@PathVariable(name = "id") String movieId) {
 		// TODO
 		
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	@Operation(summary = "영화 장르 목록 조회", description = "영화 장르 목록을 조회합니다.")
-	@GetMapping("/genre/list")
-	public ResponseEntity<String> getGenreList() {
+	@Parameter(name = "asynType" , description = "데이터 갱신 타입")
+	@GetMapping("/genres")
+	public ResponseEntity<String> getGenreList(
+			@RequestParam(name = "asynType") AsyncType type) {
 		// TODO
-		
+		System.out.println(type.getValue());
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	@Operation(summary = "영화 관람 등급 목록 조회", description = "영화 관람 등급 목록을 조회합니다.")
-	@GetMapping("/certification/list")
-	public ResponseEntity<String> getCertificationList() {
+	@Parameter(name = "asynType" , description = "데이터 갱신 타입")
+	@GetMapping("/certifications")
+	public ResponseEntity<String> getCertificationList(
+			@RequestParam(name = "asynType") AsyncType type) {
 		// TODO
 		
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	@Operation(summary = "영화 평가 등록", description = "사용자 ID 기준으로 영화 평가를 등록합니다.")
-	@PostMapping("/rating")
-	public ResponseEntity<String> addRating() {
+	@Parameter(name = "id", required = true, description = "영화 ID")
+	@PostMapping("{id}/rating")
+	public ResponseEntity<String> addRating(
+			@PathVariable(name="id") String movieId) {
 		// TODO
-		
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
-	@DeleteMapping("/rating")
-	public ResponseEntity<String> deleteRating() {
-		// TODO
-		
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
-	}
-	
-	@Operation(summary = "평가된 영화 목록 조회", description = "사용자 ID 기준으로 평가된 영화 목록을  조회합니다.")
-	@GetMapping("/rating/{userId}")
-	public ResponseEntity<String> getRatingMovieListByUserId(@RequestParam(name = "sessionId") String sessionId) {
+	 @Parameter(name = "id", required = true, description = "영화 ID")
+	@DeleteMapping("{id}/rating")
+	public ResponseEntity<String> deleteRating(@PathVariable(name = "id") String movieId) {
 		// TODO
 		
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
