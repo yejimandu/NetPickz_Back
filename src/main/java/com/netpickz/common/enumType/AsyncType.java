@@ -1,8 +1,8 @@
 package com.netpickz.common.enumType;
 
 public enum AsyncType {
-	갱신("Y"),
-	미갱신("N");
+	갱신("true"),
+	미갱신("false");
 	
 	private final String value;
 	AsyncType(String value) {

@@ -96,7 +96,7 @@ public class TmdbClient  {
 				.block();
 	}
 	
-	public ResponseEntity<TmdbCertificationResponse> getCertificationList(){
+	public ResponseEntity<TmdbCertificationListResponse> getCertificationList(){
 		return webClient
 				.get()
 				.uri(uriBuilder -> uriBuilder
@@ -104,7 +104,21 @@ public class TmdbClient  {
 					.queryParam("api_key", apiKey)
 					.build())
 				.retrieve()
-				.toEntity(TmdbCertificationResponse.class)
+				.toEntity(TmdbCertificationListResponse.class)
+				.block();
+	}
+	
+	public ResponseEntity<TmdbProviderListResponse> getProviderList(){
+		return webClient
+				.get()
+				.uri(uriBuilder -> uriBuilder
+					.path("/watch/providers/movie")
+					.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.queryParam("watch_region", "KR")
+					.build())
+				.retrieve()
+				.toEntity(TmdbProviderListResponse.class)
 				.block();
 	}
 
@@ -154,7 +168,7 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-	public ResponseEntity<TmdbProviderResponse> getWatchProviderList(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbWatchProviderListResponse> getWatchProviderList(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.GET)
 				.uri(uriBuilder -> uriBuilder
@@ -163,7 +177,7 @@ public class TmdbClient  {
 					.queryParam("language", "ko-KR")
 					.build(request.getMovieId()))
 				.retrieve()
-				.toEntity(TmdbProviderResponse.class)
+				.toEntity(TmdbWatchProviderListResponse.class)
 				.block();
 	} 
 	
@@ -173,7 +187,7 @@ public class TmdbClient  {
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("language", "ko-KR")
+						.queryParam("session_id", request.getSessionId())
 						.build(request.getMovieId()))
 				.body(BodyInserters.fromValue(Map.of("value", request.getRating())))
 				.retrieve()
