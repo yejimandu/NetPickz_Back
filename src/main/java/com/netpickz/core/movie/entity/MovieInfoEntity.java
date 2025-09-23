@@ -28,8 +28,8 @@ public class MovieInfoEntity {
 	@Column(name="movie_id")
 	private String movieId ;
 	
-	@Column(name="user_name")
-	private String userName ;
+//	@Column(name="user_name")
+//	private String userName ;
 
 	@Column(name="over_view")
 	private String overView ;
