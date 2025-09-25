@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.netpickz.api.movie.MovieController;
-import com.netpickz.api.request.FilterRequest;
+import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.core.session.SessionDTO;
 
 import org.springframework.http.HttpHeaders;

@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.netpickz.api.request.FilterRequest;
-import com.netpickz.api.request.RatingRequest;
+import com.netpickz.api.movie.request.FilterRequest;
+import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;

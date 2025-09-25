@@ -3,8 +3,8 @@ package com.netpickz.core.movie;
 import java.util.List;
 import java.util.Optional;
 
-import com.netpickz.api.request.FilterRequest;
-import com.netpickz.api.request.RatingRequest;
+import com.netpickz.api.movie.request.FilterRequest;
+import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;

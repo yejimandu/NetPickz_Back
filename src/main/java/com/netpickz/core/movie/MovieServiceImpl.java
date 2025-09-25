@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.netpickz.api.request.FilterRequest;
-import com.netpickz.api.request.RatingRequest;
+import com.netpickz.api.movie.request.FilterRequest;
+import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;

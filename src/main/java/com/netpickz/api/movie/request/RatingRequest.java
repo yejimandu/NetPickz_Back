@@ -1,4 +1,4 @@
-package com.netpickz.api.request;
+package com.netpickz.api.movie.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

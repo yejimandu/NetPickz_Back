@@ -1,4 +1,4 @@
-package com.netpickz.api.request;
+package com.netpickz.api.movie.request;
 
 import com.netpickz.common.enumType.SortType;
 
