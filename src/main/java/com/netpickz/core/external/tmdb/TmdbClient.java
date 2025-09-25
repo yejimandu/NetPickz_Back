@@ -1,8 +1,14 @@
 package com.netpickz.core.external.tmdb;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 
 import com.netpickz.api.movie.MovieController;
+import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.core.session.SessionDTO;
 
 import org.springframework.http.HttpHeaders;
@@ -147,6 +153,63 @@ public class TmdbClient  {
 			    	.path(tmdbMovieCategory.getPath())
 			    	.queryParam("api_key", apiKey)
 					.queryParam("language", "ko-KR")
+					.build()
+		    		)
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
+	public ResponseEntity<TmdbMovieListResponse> getMovieTrendList(String timeType) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> uriBuilder
+			    	.path("/trending/movie/{time_window}")
+			    	.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.build(timeType)
+		    		)
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
+	public ResponseEntity<TmdbMovieListResponse> getMovieListByFilter(FilterRequest filterRequest) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> {
+			    		uriBuilder
+			    		.path("/discover/movie")
+			    		.queryParam("api_key", apiKey)
+			    		.queryParam("language", "ko-KR")
+			    		.queryParam("region", "KR")
+			    		.queryParam("with_release_type", "1|2|3|4|5|6")
+			    		.queryParam("release_date.lte", LocalDate.now())
+			    		.queryParam("include_adult", filterRequest.getIncludeAdult())
+			    		.queryParam("sort_by", filterRequest.getSortType().getValue());
+			    		
+			    		Optional.ofNullable(filterRequest.getWithGenres())
+			    		.ifPresent(e -> uriBuilder.queryParam("with_genres", e));
+			    		Optional.ofNullable(filterRequest.getWithPeople())
+			    		.ifPresent(e -> uriBuilder.queryParam("with_people", e));
+			    		
+			    		return uriBuilder.build();
+		    		})
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
+	public ResponseEntity<TmdbMovieListResponse> getMovieListBySearch(String title) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> uriBuilder
+			    	.path("/search/movie")
+			    	.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.queryParam("region", "KR")
+					.queryParam("query", title)
+					.queryParam("page", 1)
 					.build()
 		    		)
 			    .retrieve()
