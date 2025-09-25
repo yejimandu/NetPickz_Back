@@ -27,8 +27,8 @@ public class MovieEntity {
 	@Column(name="movie_id")
 	private String movieId ;
 	
-	@Column
-	private Integer id;
+	@Column(unique = true)
+	private String id;
 	
 	@Column
 	private String title;
@@ -37,9 +37,11 @@ public class MovieEntity {
 	private Timestamp createdAt;
 	
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default //
     private List<MovieGenreEntity> genrees = new ArrayList();
 
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default // 
     private List<MovieProviderEntity> providers = new ArrayList();
 	
 }
