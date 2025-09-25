@@ -5,7 +5,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.netpickz.api.login.LoginController;
+
+import com.netpickz.api.request.FilterRequest;
 import com.netpickz.api.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
@@ -15,6 +16,7 @@ import com.netpickz.common.entity.GenreEntity;
 import com.netpickz.common.entity.ProvidersEntity;
 import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
+import com.netpickz.common.enumType.TimeType;
 import com.netpickz.common.repository.CertificationRepository;
 import com.netpickz.common.repository.GenreRepository;
 import com.netpickz.common.repository.ProvidersRepository;
@@ -22,7 +24,6 @@ import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.external.tmdb.TmdbMovieCategory;
 import com.netpickz.core.external.tmdb.TmdbMovieRequest;
-import com.netpickz.core.external.tmdb.TmdbMovieResponse;
 import com.netpickz.core.movie.entity.MovieEntity;
 import com.netpickz.core.movie.entity.MovieInfoEntity;
 import com.netpickz.core.movie.entity.MovieProviderEntity;
@@ -142,14 +143,13 @@ public class MovieServiceImpl implements MovieService {
 	@Override
 	public Optional<List<MovieDTO>> getMovieListByType(MovieCategory category) {
 //		if(Boolean.valueOf(type.getValue())) {
-			System.out.println(TmdbMovieCategory.valueOf(category.getValue()));
-			System.out.println(TmdbMovieCategory.valueOf(category.getValue()).getPath());
 			var tmdbMoviesResponse = tmdbClient.getMovieList(TmdbMovieCategory.valueOf(category.getValue())).getBody();
-			System.out.println(tmdbMoviesResponse);
-			System.out.println();
-			var typeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder().posterPath(e.getPosterPath()).overview(e.getOverview())
-					.releaseDate(e.getReleaseDate()).genres(e.getGenres()).originalLanguage(e.getOriginalLanguage())
-					.title(e.getTitle()).id(e.getId()).build()).toList();
+			var typeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+					.posterPath(e.getPosterPath()).overview(e.getOverview())
+					.releaseDate(e.getReleaseDate()).genres(e.getGenres())
+					.originalLanguage(e.getOriginalLanguage())
+					.title(e.getTitle()).id(e.getId()).build())
+					.toList();
 //			var movieId = IdGenerator.getId("mv_");
 //			var movieEntitys = result.stream().map(re -> MovieEntity.builder().id(String.valueOf(re.getId())).movieId(movieId)
 //					.title(re.getTitle()).build()).toList();
@@ -163,20 +163,32 @@ public class MovieServiceImpl implements MovieService {
 		return Optional.of(typeMovieDtos);
 	}
 
+	@Override
+	public Optional<List<MovieDTO>> getMovieListByTimeType(TimeType timeType) {
+		var tmdbMoviesResponse = tmdbClient.getMovieTrendList(timeType.getValue()).getBody();
+		var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+				.posterPath(e.getPosterPath()).overview(e.getOverview())
+				.releaseDate(e.getReleaseDate()).genres(e.getGenres())
+				.originalLanguage(e.getOriginalLanguage())
+				.title(e.getTitle()).id(e.getId()).build())
+				.toList();
+		
+		return Optional.of(timeTypeMovieDtos);
+	}
 
 	@Override
 	public Optional<List<ProviderDTO>> getProviders(AsyncType type) {
 		if(Boolean.valueOf(type.getValue())) {
 			var tmdbProviderResponse =  tmdbClient.getProviderList().getBody();
-			var providerEntitys = tmdbProviderResponse.getResults().stream().map(re -> ProvidersEntity.builder().id(re.getProviderId()).name(re.getProviderName())
-					.logoPath(re.getLogoPath()).orderNum(String.valueOf(re.getDisplayPriority())).build()).toList();
-			System.out.println(providerEntitys);
+			var providerEntitys = tmdbProviderResponse.getResults().stream().map(re -> ProvidersEntity.builder()
+					.id(re.getProviderId()).name(re.getProviderName())
+					.logoPath(re.getLogoPath()).orderNum(String.valueOf(re.getDisplayPriority()))
+					.build()).toList();
 			providersRepository.saveAll(providerEntitys);
 		}
 		var providers = providersRepository.findAll();
 		var providerDtos = providers.stream().map(e -> new ProviderDTO(e.getId(), e.getName(),e.getLogoPath(), e.getOrderNum())).toList();
 		return Optional.of(providerDtos);
-		
 	}
 
 
@@ -187,11 +199,9 @@ public class MovieServiceImpl implements MovieService {
 		
 		var movieProviderEntity = tmdbProviderByMovieIdResponse.getResults().get("KR").getFlatrate().stream().map(re -> MovieProviderEntity.builder().movieEntity(MovieEntity.builder().movieId(movieId).build())
 				.providersEntity(ProvidersEntity.builder().id(re.getProviderId()).build()).build()).toList();
-		System.out.println(movieProviderEntity);
 		
 		var movieProviders =  movieProviderRepository.saveAll(movieProviderEntity);
 		var movieDtos = movieProviders.stream().map(e -> new MovieDTO().builder().movieId(e.getMovieEntity().getMovieId()).providerId(e.getProvidersEntity().getId()).build()).toList();
-		System.out.println(movieDtos);
 		return Optional.of(movieDtos);
 	}
 
@@ -200,7 +210,6 @@ public class MovieServiceImpl implements MovieService {
 	public Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId) {
 		var tmdbMovie = movieRepository.findByMovieId(movieId).get();
 		var tmdbSimilarMoviesResponse = tmdbClient.getSimilarMovieListById(TmdbMovieRequest.builder().movieId(Integer.valueOf(tmdbMovie.getId())).build()).getBody();
-		System.out.println(tmdbSimilarMoviesResponse);
 		var similarMovieDtos = tmdbSimilarMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder().posterPath(e.getPosterPath()).overview(e.getOverview())
 				.releaseDate(e.getReleaseDate()).title(e.getTitle()).id(e.getId()).build()).toList();
 		return Optional.of(similarMovieDtos);
@@ -208,13 +217,40 @@ public class MovieServiceImpl implements MovieService {
 
 
 	@Override
-	public void addRatingByUserId(RatingRequest ratingRequest) {
-		var tmdbMovie = movieRepository.findByMovieId(ratingRequest.getMovieId()).get();
-		var ddd = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(tmdbMovie.getId())).sessionId(ratingRequest.getSessionId()).rating(ratingRequest.getValue()).build());
+	public void addRatingByUserId(String movieId, RatingRequest ratingRequest) {
+		var tmdbMovie = movieRepository.findByMovieId(movieId).get();
+		var ddd = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(tmdbMovie.getId()))
+				.sessionId(ratingRequest.getSessionId()).rating(ratingRequest.getValue()).build());
 		System.out.println(ddd);
 		//TODO
-		userService.addRatingByUser(UserDTO.builder().sessionId(ratingRequest.getSessionId()).build(), ratingRequest.getValue());
+//		userService.addRatingByUser(UserDTO.builder().sessionId(ratingRequest.getSessionId()).build(), ratingRequest.getValue());
 		
+	}
+
+	@Override
+	public Optional<List<MovieDTO>> getMovieListBySearch(String title) {
+		var tmdbMoviesResponse = tmdbClient.getMovieListBySearch(title).getBody();
+		var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+				.posterPath(e.getPosterPath()).overview(e.getOverview())
+				.releaseDate(e.getReleaseDate()).genres(e.getGenres())
+				.originalLanguage(e.getOriginalLanguage())
+				.title(e.getTitle()).id(e.getId()).build())
+				.toList();
+		
+		return Optional.of(timeTypeMovieDtos);
+	}
+
+	@Override
+	public Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest) {
+		var tmdbMoviesResponse = tmdbClient.getMovieListByFilter(filterRequest).getBody();
+		var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+				.posterPath(e.getPosterPath()).overview(e.getOverview())
+				.releaseDate(e.getReleaseDate()).genres(e.getGenres())
+				.originalLanguage(e.getOriginalLanguage())
+				.title(e.getTitle()).id(e.getId()).build())
+				.toList();
+		
+		return Optional.of(timeTypeMovieDtos);
 	}
 
 		
