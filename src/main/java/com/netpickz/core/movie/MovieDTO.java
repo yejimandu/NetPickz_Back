@@ -25,7 +25,7 @@ public class MovieDTO {
 	@Schema(description = "영화 Id", example = "mv_32748372823", required = true)
 	private String movieId;
 	@Schema(description = "Tmdb 영화 고유 Id", example = "1038392", required = true)
-	private Integer id;
+	private String id;
 	@Schema(description = "영화 개봉일", example = "2025-09-03", required = true)
 	private String releaseDate;
 	@Schema(description = "영화 개요", example = "1986년 펜실베니아,…", required = true)

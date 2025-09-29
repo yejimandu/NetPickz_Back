@@ -16,7 +16,10 @@ public class TmdbMovieResponse {
 	private String posterPath;
 	
 	@JsonProperty("genre_ids")
-	private List<Integer> genres;
+	private List<Integer> genreIds;
+	
+	@JsonProperty("genres")
+	private List<TmdbGenreResponse> genres;
 	
 	@JsonProperty("id")
 	private Integer id;
