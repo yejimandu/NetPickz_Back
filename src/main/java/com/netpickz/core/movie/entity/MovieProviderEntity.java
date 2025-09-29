@@ -2,7 +2,6 @@ package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
 
-import com.netpickz.common.entity.GenreEntity;
 import com.netpickz.common.entity.ProvidersEntity;
 
 import jakarta.persistence.Column;
