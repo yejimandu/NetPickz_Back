@@ -64,7 +64,6 @@ public class MovieController {
 	public ResponseEntity<MovieDTO> getMovieInfo(
 			@PathVariable(name = "movieId") String movieId, 
 			@RequestParam(name = "asynType") AsyncType type) {
-		//TODO 파람 값 고민..
 		var movieDTO =  movieService.getMovieInfoByMovieIdAndType(movieId, type);
 		return  new ResponseEntity<MovieDTO>(movieDTO.isPresent() ? movieDTO.get() : null , HttpStatus.OK);
 	}
@@ -143,7 +142,7 @@ public class MovieController {
 			) {
 		// TODO
 		
-		movieService.addRatingByUserId(movieId, RatingRequest.builder().sessionId(request.getSessionId()).value(request.getValue()).build());
+//		movieService.addRatingByUserId(movieId, RatingRequest.builder().sessionId(request.getSessionId()).value(request.getValue()).build());
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	

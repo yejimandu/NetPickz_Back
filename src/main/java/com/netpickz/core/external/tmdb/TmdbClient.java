@@ -183,7 +183,7 @@ public class TmdbClient  {
 			    		.queryParam("api_key", apiKey)
 			    		.queryParam("language", "ko-KR")
 			    		.queryParam("region", "KR")
-			    		.queryParam("with_release_type", "1|2|3|4|5|6")
+			    		.queryParam("with_release_type", "2|3|4|5")
 			    		.queryParam("release_date.lte", LocalDate.now())
 			    		.queryParam("include_adult", filterRequest.getIncludeAdult())
 			    		.queryParam("sort_by", filterRequest.getSortType().getValue());

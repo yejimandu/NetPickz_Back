@@ -32,10 +32,9 @@ public interface MovieService {
 
 	Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId);
 
-	void addRatingByUserId(String movieId, RatingRequest ratingRequest);
-
 	Optional<List<MovieDTO>> getMovieListBySearch(String title);
 
 	Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest);
 
+//	void addRatingByUserId(String movieId, RatingRequest ratingRequest);
 }
