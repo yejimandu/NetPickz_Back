@@ -40,5 +40,5 @@ public class MovieDTO {
 	private String originalLanguage;
 	private String status;
 	@Schema(description = "영화 제공 업체 고유 ID", example = "7", required = true)
-	private Integer providerId;
+	private String providerId;
 }

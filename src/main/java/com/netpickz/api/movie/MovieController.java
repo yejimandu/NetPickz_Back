@@ -136,13 +136,10 @@ public class MovieController {
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@PostMapping("{movieId}/rating")
 	public ResponseEntity<String> addRating(
-			@PathVariable(name="movieId") String movieId
-			, @org.springframework.web.bind.annotation.RequestBody 
-			RatingRequest request			
-			) {
+			@PathVariable(name="movieId") String movieId,
+			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
 		// TODO
-		
-//		movieService.addRatingByUserId(movieId, RatingRequest.builder().sessionId(request.getSessionId()).value(request.getValue()).build());
+		movieService.addMovieRatingByUserId(movieId, request);
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
