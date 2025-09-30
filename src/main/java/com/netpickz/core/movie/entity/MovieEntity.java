@@ -4,6 +4,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,19 +30,22 @@ public class MovieEntity {
 	@Column(name="movie_id")
 	private String movieId ;
 	
-	@Column
-	private Integer id;
-	
+	@Column(unique = true)
+	private String id;
+
 	@Column
 	private String title;
 	
 	@Column(name="created_at")
+	@UpdateTimestamp
 	private Timestamp createdAt;
 	
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MovieGenreEntity> genrees = new ArrayList();
+    @Builder.Default //
+    private List<MovieGenreEntity> genres = new ArrayList();
 
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default // 
     private List<MovieProviderEntity> providers = new ArrayList();
 	
 }

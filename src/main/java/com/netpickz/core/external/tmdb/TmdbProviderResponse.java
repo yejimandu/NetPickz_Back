@@ -12,9 +12,9 @@ public class TmdbProviderResponse {
 	@JsonProperty("link")
 	private String link;
 	@JsonProperty("rent")
-	private List<TmdbWatchProvider> rent;
+	private List<TmdbWatchProviderResponse> rent;
 	@JsonProperty("flatrate")
-	private List<TmdbWatchProvider> flatrate;
+	private List<TmdbWatchProviderResponse> flatrate;
 	@JsonProperty("buy")
-	private List<TmdbWatchProvider> buy;
+	private List<TmdbWatchProviderResponse> buy;
 }

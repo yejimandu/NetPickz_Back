@@ -1,7 +1,8 @@
 package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
-import java.util.List;
+
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.common.entity.CertificationEntity;
 
@@ -28,10 +29,12 @@ public class MovieInfoEntity {
 	@Column(name="movie_id")
 	private String movieId ;
 	
-	@Column(name="user_name")
-	private String userName ;
-
-	@Column(name="over_view")
+	@OneToOne
+	@MapsId
+	@JoinColumn(name = "movie_id")
+	private MovieEntity movieEntity;
+	
+	@Column(name="over_view", length = 500)
 	private String overView ;
 
 	@Column(name="poster_path")
@@ -45,11 +48,8 @@ public class MovieInfoEntity {
     private CertificationEntity certificationEntity;
 	
 	@Column(name="created_at")
+	@UpdateTimestamp
 	private Timestamp createdAt;
 	
-	@OneToOne
-	@MapsId
-	@JoinColumn(name = "movieId")
-	private MovieEntity movieEntity;
 	
 }

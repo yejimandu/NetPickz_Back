@@ -2,6 +2,7 @@ package com.netpickz.core.movie;
 
 import java.util.List;
 
+import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.core.external.tmdb.TmdbGenreResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,7 +25,7 @@ public class MovieDTO {
 	@Schema(description = "영화 Id", example = "mv_32748372823", required = true)
 	private String movieId;
 	@Schema(description = "Tmdb 영화 고유 Id", example = "1038392", required = true)
-	private Integer id;
+	private String id;
 	@Schema(description = "영화 개봉일", example = "2025-09-03", required = true)
 	private String releaseDate;
 	@Schema(description = "영화 개요", example = "1986년 펜실베니아,…", required = true)
@@ -33,7 +34,11 @@ public class MovieDTO {
 	private Integer runtime;
 	@Schema(description = "영화 제목", example = "컨저링: 마지막 의식", required = true)
 	private String title;
-	private List<TmdbGenreResponse> genres;
+	@Schema(description = "영화 장르 목록", example = "[ 27, 16, 14, 53 ]", required = true)
+	private List<Integer> genres;
+	@Schema(description = "원어", example = "en", required = true)
 	private String originalLanguage;
 	private String status;
+	@Schema(description = "영화 제공 업체 고유 ID", example = "7", required = true)
+	private String providerId;
 }
