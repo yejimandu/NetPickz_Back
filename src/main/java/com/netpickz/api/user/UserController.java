@@ -1,19 +1,19 @@
 package com.netpickz.api.user;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.netpickz.core.user.entity.UserEntity;
+import com.netpickz.api.login.LoginController;
+import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.core.user.UserDTO;
+import com.netpickz.core.user.UserService;
 import com.netpickz.core.user.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,39 +24,40 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/users")
 @Tag(name = "User", description = "사용자 관련 기능을 제공하는 컨트롤러")
 public class UserController {
-	
-	@Autowired
-	UserRepository userRepository;
 
-	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-    @Parameter(name = "userId", required = true, description = "사용자 ID")
+	@Autowired
+	private UserService userService;
+
+	@Operation(summary = "사용자 정보 조회", description = "사용자 ID 기준으로 사용자 정보를 조회합니다.")
 	@GetMapping("/{userId}")
-	public ResponseEntity<String> getUserInfo(@RequestParam(name = "userId") String userId) {
-		Optional<UserEntity> ddd = userRepository.findById("yeji3479");
-		System.out.println(ddd);
+	public ResponseEntity<UserDTO> getUserInfo(
+			@PathVariable(name = "userId") String userId) {
 		// TODO
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		var userDto = userService.getUserInfoByUserId(userId);
+		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null, HttpStatus.OK);
 	}
 	
-	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
+	@Operation(summary = "사용자 생성", description = "요청 정보 기준으로 사용자 정보를 생성합니다.")
 	@PostMapping("")
-	public ResponseEntity<String> registUser() {
-		// TODO
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+	public ResponseEntity<UserDTO> createUser(
+			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
+		var userDto = userService.createUser(request);
+		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null , HttpStatus.OK);
 	}
 	
-	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-	@Parameter(name = "userId", required = true, description = "사용자 ID")
-	@PutMapping("/{userId}")
-	public ResponseEntity<String> updateUser(@RequestParam(name = "userId") String userId) {
+	@Operation(summary = "사용자 정보 수정", description = "요청 정보 기준으로 사용자 정보를 수정합니다.")
+	@PutMapping("")
+	public ResponseEntity<UserDTO> updateUser(
+			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
 		// TODO
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		var userDto = userService.updateUser(request);
+		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null , HttpStatus.OK);
 	}
 	
-	@Operation(summary = "사용자 API", description = "간단한 OK 응답 테스트")
-	@Parameter(name = "userId", required = true, description = "사용자 ID")
+	@Operation(summary = "사용자 히스토리 정보 조회", description = "사용자 ID 기준으로 히스토리 내역을 조회합니다.")
 	@GetMapping("/{userId}/history")
-	public ResponseEntity<String> historyUser(@RequestParam(name = "userId") String userId) {
+	public ResponseEntity<String> historyUser(
+			@PathVariable(name = "userId") String userId) {
 		// TODO
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
