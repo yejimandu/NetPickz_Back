@@ -2,6 +2,8 @@ package com.netpickz.core.session;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.core.user.entity.UserEntity;
 
@@ -13,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -30,17 +33,17 @@ import lombok.NoArgsConstructor;
 public class SessionEntity {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+//	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private String id;
 	
-	@Column(unique = true, nullable = false, name="session_id")
+	@Column(nullable = false, name="session_id")
 	private String sessionId;
 	
 	@Enumerated(EnumType.STRING)
     @Column(nullable = false)
 	private SessionType type;
 	
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     private UserEntity userEntity;
 	
@@ -48,6 +51,7 @@ public class SessionEntity {
 	private Timestamp expiresAt;
 	
 	@Column(name="created_at")
+	@CreationTimestamp
 	private Timestamp createdAt;
 	
 }
