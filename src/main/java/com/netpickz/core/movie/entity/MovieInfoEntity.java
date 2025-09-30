@@ -1,20 +1,15 @@
 package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
-import java.util.List;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.common.entity.CertificationEntity;
-import com.netpickz.core.movie.entity.pk.MoviePk;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -53,7 +48,7 @@ public class MovieInfoEntity {
     private CertificationEntity certificationEntity;
 	
 	@Column(name="created_at")
-	@CreationTimestamp
+	@UpdateTimestamp
 	private Timestamp createdAt;
 	
 	

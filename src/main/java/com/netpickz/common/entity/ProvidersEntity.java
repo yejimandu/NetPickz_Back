@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProvidersEntity {
 	@Id
-	private Integer id;
+	private String id;
 	@Column
 	private String name;
 	@Column(name="logo_path")

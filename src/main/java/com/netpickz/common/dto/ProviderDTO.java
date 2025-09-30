@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProviderDTO {
 
 	@Schema(description = "영화 제공 업체 ID", example = "356")
-	private Integer id;
+	private String id;
 	@Schema(description = "영화 제공 업체명", example = "wavve")
 	private String name;
 	@Schema(description = "영화 제공 업체 로고 이미지 경로", example = "/hPcjSaWfMwEqXaCMu7Fkb529Dkc.jpg")

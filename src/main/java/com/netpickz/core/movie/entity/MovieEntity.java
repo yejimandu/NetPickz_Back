@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -36,12 +37,12 @@ public class MovieEntity {
 	private String title;
 	
 	@Column(name="created_at")
-	@CreationTimestamp
+	@UpdateTimestamp
 	private Timestamp createdAt;
 	
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default //
-    private List<MovieGenreEntity> genrees = new ArrayList();
+    private List<MovieGenreEntity> genres = new ArrayList();
 
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default // 

@@ -36,5 +36,5 @@ public interface MovieService {
 
 	Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest);
 
-//	void addRatingByUserId(String movieId, RatingRequest ratingRequest);
+	void addMovieRatingByUserId(String movieId, RatingRequest ratingRequest);
 }

@@ -5,8 +5,9 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.netpickz.api.login.LoginController;
+
 import com.netpickz.api.movie.request.FilterRequest;
+import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;
@@ -27,12 +28,14 @@ import com.netpickz.core.movie.entity.MovieEntity;
 import com.netpickz.core.movie.entity.MovieGenreEntity;
 import com.netpickz.core.movie.entity.MovieInfoEntity;
 import com.netpickz.core.movie.entity.MovieProviderEntity;
-import com.netpickz.core.movie.entity.pk.MoviePk;
+import com.netpickz.core.movie.entity.pk.MovieGenrePK;
+import com.netpickz.core.movie.entity.pk.MovieProviderPK;
 import com.netpickz.core.movie.repository.MovieGenreRepository;
 import com.netpickz.core.movie.repository.MovieInfoRepository;
 import com.netpickz.core.movie.repository.MovieProviderRepository;
 import com.netpickz.core.movie.repository.MovieRepository;
 import com.netpickz.core.movie.repository.MovieRepositoryCustom;
+import com.netpickz.core.user.UserDTO;
 import com.netpickz.core.user.UserService;
 
 @Service
@@ -71,7 +74,7 @@ public class MovieServiceImpl implements MovieService {
 	
 	@Override
 	public Optional<MovieDTO> getMovieInfoByExternalId(String id) {
-		var movieID = IdGenerator.getId("mv");
+		var movieID = IdGenerator.getId("MV_");
 		var tmdbMovieResponse = tmdbClient.getMovieInfo(TmdbMovieRequest.builder().movieId(Integer.valueOf(id)).build()).getBody();
 		// TODO tmdb 없는것도 처리 필요
 		// 1. 부모 엔티티 저장
@@ -88,8 +91,11 @@ public class MovieServiceImpl implements MovieService {
 		
 		// 3. genres 엔티티 저장
 		System.out.println( tmdbMovieResponse.getGenres().stream());
-		var movieGenresEntity = tmdbMovieResponse.getGenres().stream().map(e -> MovieGenreEntity.builder().movieEntity(movie)
-				.genreEntity(GenreEntity.builder().id(String.valueOf(e.getId())).build()).build()).toList();
+		var movieGenresEntity = tmdbMovieResponse.getGenres().stream().map(e -> MovieGenreEntity.builder()
+				.id(MovieGenrePK.builder().genreId(String.valueOf(e.getId())).movieId(movieID).build())
+				.movieEntity(movie)
+				.genreEntity(GenreEntity.builder().id(String.valueOf(e.getId())).build())
+				.build()).toList();
 		System.out.println(movieGenresEntity);
 		var genres = movieGenreRepository.saveAll(movieGenresEntity);
 		var genrsIds = genres.stream().map(e -> Integer.valueOf(e.getGenreEntity().getId())).toList();
@@ -111,7 +117,7 @@ public class MovieServiceImpl implements MovieService {
 	public Optional<MovieDTO> getMovieInfoByMovieIdAndType(String movieId, AsyncType type) {
 		// TODO type true 인경우.
 		if(Boolean.valueOf(type.getValue())) {
-			var tmdbMovie = movieRepository.findByMovieId(movieId).get();
+			var tmdbMovie = movieRepository.findById(movieId).get();
 			var tmdbMovieResponse = tmdbClient.getMovieInfo(TmdbMovieRequest.builder().movieId(Integer.valueOf(tmdbMovie.getId())).build()).getBody();
 			var movieEntity = MovieEntity.builder().id(String.valueOf(tmdbMovieResponse.getId())).title(tmdbMovieResponse.getTitle()).build();
 			movieRepository.saveAndFlush(movieEntity);
@@ -181,36 +187,42 @@ public class MovieServiceImpl implements MovieService {
 		if(Boolean.valueOf(type.getValue())) {
 			var tmdbProviderResponse =  tmdbClient.getProviderList().getBody();
 			var providerEntitys = tmdbProviderResponse.getResults().stream().map(re -> ProvidersEntity.builder()
-					.id(re.getProviderId()).name(re.getProviderName())
+					.id(String.valueOf(re.getProviderId())).name(re.getProviderName())
 					.logoPath(re.getLogoPath()).orderNum(String.valueOf(re.getDisplayPriority()))
 					.build()).toList();
 			providersRepository.saveAll(providerEntitys);
 		}
-		var providerDtos = providersRepository.findAll().stream().map(e -> new ProviderDTO(e.getId(), e.getName(),e.getLogoPath(), e.getOrderNum())).toList();
+		var providerDtos = providersRepository.findAll().stream().map(e -> new ProviderDTO(String.valueOf(e.getId()), e.getName(),e.getLogoPath(), e.getOrderNum())).toList();
 		return Optional.of(providerDtos);
 	}
 
 
 	@Override
 	public Optional<List<MovieDTO>> getProviderByMovieId(String movieId) {
-		var movie = movieRepository.findByMovieId(movieId).get();
+		// TODO 중복처리 및 기존에 있는 값이면 처리
+		var movie = movieRepository.findById(movieId).get();
+//		if(!movieObject.isPresent()) return Optional.empty();
+//		var movie = movieObject.get();
 		var tmdbProviderByMovieIdResponse = tmdbClient.getWatchProviderList(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
 		// TODO 리스트가 없는 경우 처리
 		//		var krList = tmdbProviderByMovieIdResponse.getResults().get("KR");
 		
 		var movieProviderEntity = tmdbProviderByMovieIdResponse.getResults().get("KR").getFlatrate().stream().map(re -> MovieProviderEntity.builder()
-				.providersEntity(ProvidersEntity.builder().id(re.getProviderId()).build())
+				.providersEntity(ProvidersEntity.builder().id(String.valueOf(re.getProviderId())).build())
+				.id(MovieProviderPK.builder().movieId(movieId).providerId(String.valueOf(re.getProviderId())).build())
 				.movieEntity(movie).build()).toList();
 		
 		var movieProviders =  movieProviderRepository.saveAll(movieProviderEntity);
-		var movieDtos = movieProviders.stream().map(e -> new MovieDTO().builder().movieId(e.getMovieEntity().getId()).providerId(e.getProvidersEntity().getId()).build()).toList();
+		var movieDtos = movieProviders.stream().map(e -> new MovieDTO().builder().movieId(e.getMovieEntity().getId())
+				.providerId(e.getProvidersEntity().getId()).build()).toList();
 		return Optional.of(movieDtos);
 	}
 
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId) {
-		var movie= movieRepository.findByMovieId(movieId).get();
+		// TODO 중복처리 및 기존에 있는 값이면 처리
+		var movie= movieRepository.findById(movieId).get();
 		var tmdbSimilarMoviesResponse = tmdbClient.getSimilarMovieListById(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
 		var similarMovieDtos = tmdbSimilarMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
 				.posterPath(e.getPosterPath())
@@ -248,15 +260,17 @@ public class MovieServiceImpl implements MovieService {
 		return Optional.of(timeTypeMovieDtos);
 	}
 
+	@Override
+	public void addMovieRatingByUserId(String movieId, RatingRequest request) {
+		//TODO ispresent 아닌것도 처리
+		var movie = movieRepository.findById(movieId).get();
+		var tmdbMovieResponse = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
+				.sessionId(request.getSessionId())
+				.rating(request.getValue())
+				.build());
+		System.out.println(tmdbMovieResponse);
+		//TODO
+		userService.addRatingByUser(movieId, request);
+	}
 
-//	@Override
-//	public void addRatingByUserId(String movieId, RatingRequest ratingRequest) {
-//		var tmdbMovie = movieRepository.findByMovieId(movieId).get();
-//		var ddd = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(tmdbMovie.getId()))
-//				.sessionId(ratingRequest.getSessionId()).rating(ratingRequest.getValue()).build());
-//		System.out.println(ddd);
-//		//TODO
-////		userService.addRatingByUser(UserDTO.builder().sessionId(ratingRequest.getSessionId()).build(), ratingRequest.getValue());
-//		
-//	}
 }
