@@ -2,7 +2,9 @@ package com.netpickz.core.external.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TmdbWatchProvider {
+import lombok.Data;
+@Data
+public class TmdbWatchProviderResponse {
 
 	@JsonProperty("logo_path")
 	private String logoPath;

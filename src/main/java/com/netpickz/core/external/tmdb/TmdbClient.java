@@ -1,8 +1,14 @@
 package com.netpickz.core.external.tmdb;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 
 import com.netpickz.api.movie.MovieController;
+import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.core.session.SessionDTO;
 
 import org.springframework.http.HttpHeaders;
@@ -96,7 +102,7 @@ public class TmdbClient  {
 				.block();
 	}
 	
-	public ResponseEntity<TmdbCertificationResponse> getCertificationList(){
+	public ResponseEntity<TmdbCertificationListResponse> getCertificationList(){
 		return webClient
 				.get()
 				.uri(uriBuilder -> uriBuilder
@@ -104,7 +110,21 @@ public class TmdbClient  {
 					.queryParam("api_key", apiKey)
 					.build())
 				.retrieve()
-				.toEntity(TmdbCertificationResponse.class)
+				.toEntity(TmdbCertificationListResponse.class)
+				.block();
+	}
+	
+	public ResponseEntity<TmdbProviderListResponse> getProviderList(){
+		return webClient
+				.get()
+				.uri(uriBuilder -> uriBuilder
+					.path("/watch/providers/movie")
+					.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.queryParam("watch_region", "KR")
+					.build())
+				.retrieve()
+				.toEntity(TmdbProviderListResponse.class)
 				.block();
 	}
 
@@ -140,6 +160,63 @@ public class TmdbClient  {
 			    .block();
 	}
 	
+	public ResponseEntity<TmdbMovieListResponse> getMovieTrendList(String timeType) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> uriBuilder
+			    	.path("/trending/movie/{time_window}")
+			    	.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.build(timeType)
+		    		)
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
+	public ResponseEntity<TmdbMovieListResponse> getMovieListByFilter(FilterRequest filterRequest) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> {
+			    		uriBuilder
+			    		.path("/discover/movie")
+			    		.queryParam("api_key", apiKey)
+			    		.queryParam("language", "ko-KR")
+			    		.queryParam("region", "KR")
+			    		.queryParam("with_release_type", "2|3|4|5")
+			    		.queryParam("release_date.lte", LocalDate.now())
+			    		.queryParam("include_adult", filterRequest.getIncludeAdult())
+			    		.queryParam("sort_by", filterRequest.getSortType().getValue());
+			    		
+			    		Optional.ofNullable(filterRequest.getWithGenres())
+			    		.ifPresent(e -> uriBuilder.queryParam("with_genres", e));
+			    		Optional.ofNullable(filterRequest.getWithPeople())
+			    		.ifPresent(e -> uriBuilder.queryParam("with_people", e));
+			    		
+			    		return uriBuilder.build();
+		    		})
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
+	public ResponseEntity<TmdbMovieListResponse> getMovieListBySearch(String title) {
+		return webClient
+			    .method(HttpMethod.GET)
+			    .uri(uriBuilder -> uriBuilder
+			    	.path("/search/movie")
+			    	.queryParam("api_key", apiKey)
+					.queryParam("language", "ko-KR")
+					.queryParam("region", "KR")
+					.queryParam("query", title)
+					.queryParam("page", 1)
+					.build()
+		    		)
+			    .retrieve()
+			    .toEntity(TmdbMovieListResponse.class)
+			    .block();
+	}
+	
 	public ResponseEntity<TmdbMovieListResponse> getSimilarMovieListById(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.GET)
@@ -154,7 +231,7 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-	public ResponseEntity<TmdbProviderResponse> getWatchProviderList(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbWatchProviderListResponse> getWatchProviderList(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.GET)
 				.uri(uriBuilder -> uriBuilder
@@ -163,25 +240,25 @@ public class TmdbClient  {
 					.queryParam("language", "ko-KR")
 					.build(request.getMovieId()))
 				.retrieve()
-				.toEntity(TmdbProviderResponse.class)
+				.toEntity(TmdbWatchProviderListResponse.class)
 				.block();
 	} 
 	
-	public ResponseEntity<TmdbMovieResponse> addRating(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbRatingResponse> addRating(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.POST)
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("language", "ko-KR")
+						.queryParam("session_id", request.getSessionId())
 						.build(request.getMovieId()))
 				.body(BodyInserters.fromValue(Map.of("value", request.getRating())))
 				.retrieve()
-				.toEntity(TmdbMovieResponse.class)
+				.toEntity(TmdbRatingResponse.class)
 				.block();
 	} 
 
-	public ResponseEntity<TmdbMovieResponse> deleteRating(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbRatingResponse> deleteRating(TmdbMovieRequest request) {
 		//guest_session_id or seesion Id
 		return webClient
 				.method(HttpMethod.DELETE)
@@ -190,9 +267,9 @@ public class TmdbClient  {
 						.queryParam("api_key", apiKey)
 						.queryParam("language", "ko-KR")
 						.build(request.getMovieId()))
-				.body(BodyInserters.fromValue(Map.of("guest_session_id", request.getGuestSessionId())))
+				.bodyValue(Map.of("guest_session_id", request.getGuestSessionId()))
 				.retrieve()
-				.toEntity(TmdbMovieResponse.class)
+				.toEntity(TmdbRatingResponse.class)
 				.block();
 				//				.body(BodyInserters.fromValue(Map.of("session_id", request.getSessionId())))
 	} 
