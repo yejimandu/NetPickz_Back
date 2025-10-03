@@ -26,6 +26,7 @@ import com.netpickz.common.enumType.SortType;
 import com.netpickz.common.enumType.TimeType;
 import com.netpickz.core.movie.MovieDTO;
 import com.netpickz.core.movie.MovieService;
+import com.netpickz.core.movie.RatingDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -135,23 +136,24 @@ public class MovieController {
 	@Operation(summary = "영화 평가 등록", description = "사용자 ID 기준으로 영화 평가를 등록합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@PostMapping("{movieId}/rating")
-	public ResponseEntity<String> addRating(
+	public ResponseEntity<RatingDTO> addRating(
 			@PathVariable(name="movieId") String movieId,
 			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
 		// TODO
-		movieService.addMovieRatingByUserId(movieId, request);
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		var rationDto =  movieService.addRatingByUserId(movieId, request);
+		return  new ResponseEntity<RatingDTO>(rationDto.isPresent()? rationDto.get() : null, HttpStatus.OK);
 	}
 	
 	// TODO
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
-	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@Parameter(name = "asynType" , description = "데이터 갱신 타입")
+//	@Parameter(name = "movieId", required = true, description = "영화 ID")
+	@Parameter(name = "sessionId", required = true, description = "세션아이디")
 	@DeleteMapping("{movieId}/rating")
-	public ResponseEntity<String> deleteRating(@PathVariable(name = "movieId") String movieId
-			) {
+	public ResponseEntity<String> deleteRating(
+			@PathVariable(name = "movieId") String movieId,
+			@RequestParam(name="sessionId") String sessionId) {
 		// TODO
-		
+		movieService.deleteRatingByUserId(movieId, sessionId);
 		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	

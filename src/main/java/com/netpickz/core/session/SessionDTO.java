@@ -25,7 +25,6 @@ public class SessionDTO {
 	private String sessionId;
 	@Schema(description = "세션 만료일(세션 타입이 게스트인 경우)", example = "2025-09-14 05:53:54 UTC")
 	private String expireDate;
-	@Schema(description = "사용자 아이디", example = "hongig32", required = true )
-	private String userId;
-	
+    @Schema(description = "사용자 아이디", example = "hongig32", required = true )
+    private String userId;
 }
