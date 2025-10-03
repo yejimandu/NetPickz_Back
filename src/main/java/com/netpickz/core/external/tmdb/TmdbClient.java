@@ -250,10 +250,9 @@ public class TmdbClient  {
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("guest_session_id", request.getSessionId())
+						.queryParam("session_id", request.getSessionId())
 						.build(request.getMovieId()))
-			    .header(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
-				.bodyValue(Map.of("value", request.getRating()))
+				.body(BodyInserters.fromValue(Map.of("value", request.getRating())))
 				.retrieve()
 				.toEntity(TmdbRatingResponse.class)
 				.block();
@@ -266,11 +265,13 @@ public class TmdbClient  {
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("guest_session_id", request.getSessionId())
+						.queryParam("language", "ko-KR")
 						.build(request.getMovieId()))
+				.bodyValue(Map.of("guest_session_id", request.getGuestSessionId()))
 				.retrieve()
 				.toEntity(TmdbRatingResponse.class)
 				.block();
+				//				.body(BodyInserters.fromValue(Map.of("session_id", request.getSessionId())))
 	} 
 	
 	public ResponseEntity<TmdbMovieResponse> ratingListByUser(TmdbMovieRequest request) {
