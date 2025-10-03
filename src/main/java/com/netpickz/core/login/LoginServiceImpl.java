@@ -15,7 +15,7 @@ public class LoginServiceImpl implements LoginService{
 	
 	@Override
 	public void guestLogin() {
-		sessionService.createSession(SessionDTO.builder().sessionType(SessionType.Guest).build());
+//		sessionService.createSession(SessionDTO.builder().sessionType(SessionType.Guest).build());
 		
 		
 	}

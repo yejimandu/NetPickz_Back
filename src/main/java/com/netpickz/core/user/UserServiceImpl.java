@@ -7,11 +7,13 @@ import org.springframework.stereotype.Service;
 
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.core.movie.RatingDTO;
 import com.netpickz.core.movie.entity.MovieEntity;
 import com.netpickz.core.session.SessionService;
 import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
 import com.netpickz.core.user.entity.UserRatingInfoEntity;
+import com.netpickz.core.user.entity.pk.UserRatingInfoPK;
 import com.netpickz.core.user.repository.UserInfoRepository;
 import com.netpickz.core.user.repository.UserRatingInfoRepository;
 import com.netpickz.core.user.repository.UserRepository;
@@ -37,17 +39,25 @@ public class UserServiceImpl implements UserService {
 	
 //	public Optional<UserDTO> addRatingByUser(UserDTO userDTO, Double rating) {
 	@Override
-	public void addRatingByUser(String movieId, RatingRequest request) {
+	public Optional<RatingDTO> addRatingByUser(String movieId, RatingRequest request) {
 		//TODO get 아닌 경우 처리 필요
-		var dto = sessionService.getSessionInfo(request.getSessionId()).get();
-		System.out.println(dto);
-		System.out.println(request);
+		var sessionDto = sessionService.getSessionInfo(request.getSessionId()).get();
 		userRatingInfoRepository.save(UserRatingInfoEntity.builder()
-				.movieEntity(MovieEntity.builder().movieId(movieId).build())
+				.id(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build())
 				.rating(request.getValue().floatValue())
-				.userEntity(UserEntity.builder().userId(dto.getUserId()).build())
 				.guestSessionId(request.getSessionId())
-				.build());
+				.movieEntity(MovieEntity.builder().movieId(movieId).build())
+				.userEntity(UserEntity.builder().userId(sessionDto.getUserId()).build())
+				.build()
+				);
+		
+		var ratingDTO = RatingDTO.builder()
+				.movieId(movieId)
+				.userId(sessionDto.getUserId())
+				.rating(request.getValue())
+				.sessionId(request.getSessionId())
+				.build();
+		return Optional.of(ratingDTO);
 	}
 
 	@Override
@@ -74,6 +84,12 @@ public class UserServiceImpl implements UserService {
 		userRepositoryCustom.upsert(userInfo);
 		
 		return getUserInfoByUserId(request.getUserId());
+	}
+
+	@Override
+	public void deleteRatingByUser(String movieId, String sessionId) {
+		var sessionDto = sessionService.getSessionInfo(sessionId).get();
+		userRatingInfoRepository.deleteById(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build());
 	}
 	
 }
