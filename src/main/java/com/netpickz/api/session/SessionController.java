@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.netpickz.api.login.LoginController;
-import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.core.session.SessionDTO;
@@ -26,21 +25,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Session", description = "세션 관련 기능을 제공하는 컨트롤러")
 public class SessionController {
 
+
 	@Autowired
 	private SessionService sessionService;
 
-	@Operation(summary = "게스트 세션 생성", description = "사용자가 tmdb 기능을 사용하기 위한 게스트 세션 생성")
-	@Parameter(name = "userId", required = true, description = "tmdb 게스트 세션을 생성할 사용자 ID")
+    @Operation(summary = "게스트 세션 생성", description = "사용자가 tmdb 기능을 사용하기 위한 게스트 세션 생성")
+    @Parameter(name = "userId", required = true, description = "tmdb 게스트 세션을 생성할 사용자 ID")
 	@GetMapping("/guest")
-	public ResponseEntity<SessionDTO> createGuestSession(
-			@RequestParam(name = "userId") String userId) {
-		var sessionDto =  sessionService.createSession(userId, SessionType.Guest);
-		return  new ResponseEntity<SessionDTO>(sessionDto.isPresent()? sessionDto.get() : null, HttpStatus.OK);
+    public ResponseEntity<SessionDTO> createGuestSession(
+            @RequestParam(name = "userId") String userId) {
+        var sessionDto =  sessionService.createSession(userId, SessionType.Guest);
+        return  new ResponseEntity<SessionDTO>(sessionDto.isPresent()? sessionDto.get() : null, HttpStatus.OK);
 	}
 	
 	// 1. 간단 구현은 해둠 그치만 보완 필요
-	// 2. return 타입 정리 및 session pk 값을 쓸 값 고민  및 값 있는지 없는지 체크 후 있으 면 할당하는 로직 필요.
-//	@Deprecated
+//	// 2. return 타입 정리 및 session pk 값을 쓸 값 고민  및 값 있는지 없는지 체크 후 있으 면 할당하는 로직 필요.
 //	@Operation(summary = "사용자 세션 생성", description = "Tmdb 테스트를 위한 테스트용 API")
 //	@GetMapping("/user")
 //	public ResponseEntity<SessionDTO> userSession() {

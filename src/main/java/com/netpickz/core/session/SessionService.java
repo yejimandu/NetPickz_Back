@@ -6,8 +6,7 @@ import com.netpickz.common.enumType.SessionType;
 
 public interface SessionService {
 
-	Optional<SessionDTO> createSession(String userId, SessionType sessionType); // user , guest 세션 생성
-
+//	SessionDTO createSession(SessionDTO sessionDto); // user , guest 세션 생성
+    Optional<SessionDTO> createSession(String userId, SessionType sessionType); // user , guest 세션 생성
 	Optional<SessionDTO> getSessionInfo(String sessionId);
-
 }

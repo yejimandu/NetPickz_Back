@@ -2,8 +2,6 @@ package com.netpickz.core.session;
 
 import java.sql.Timestamp;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.core.user.entity.UserEntity;
 
@@ -33,10 +31,9 @@ import lombok.NoArgsConstructor;
 public class SessionEntity {
 	
 	@Id
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private String id;
+    private String id;
 	
-	@Column(nullable = false, name="session_id")
+    @Column(nullable = false, name="session_id")
 	private String sessionId;
 	
 	@Enumerated(EnumType.STRING)

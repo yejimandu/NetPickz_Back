@@ -80,7 +80,6 @@ public class MovieServiceImpl implements MovieService {
 		// 1. 부모 엔티티 저장
 		var movieEntity = MovieEntity.builder().id(String.valueOf(tmdbMovieResponse.getId())).movieId(movieID).title(tmdbMovieResponse.getTitle()).build();
 		var movie = movieRepository.saveAndFlush(movieEntity);
-		System.out.println(movie);
 		
 		// 2. 자식 엔티티 저장
 		var movieInfoEntity = MovieInfoEntity.builder().movieEntity(movie)
@@ -90,13 +89,11 @@ public class MovieServiceImpl implements MovieService {
 		movieInfoRepository.saveAndFlush(movieInfoEntity);
 		
 		// 3. genres 엔티티 저장
-		System.out.println( tmdbMovieResponse.getGenres().stream());
 		var movieGenresEntity = tmdbMovieResponse.getGenres().stream().map(e -> MovieGenreEntity.builder()
 				.id(MovieGenrePK.builder().genreId(String.valueOf(e.getId())).movieId(movieID).build())
 				.movieEntity(movie)
 				.genreEntity(GenreEntity.builder().id(String.valueOf(e.getId())).build())
 				.build()).toList();
-		System.out.println(movieGenresEntity);
 		var genres = movieGenreRepository.saveAll(movieGenresEntity);
 		var genrsIds = genres.stream().map(e -> Integer.valueOf(e.getGenreEntity().getId())).toList();
 
@@ -261,16 +258,33 @@ public class MovieServiceImpl implements MovieService {
 	}
 
 	@Override
-	public void addMovieRatingByUserId(String movieId, RatingRequest request) {
+	public Optional<RatingDTO> addRatingByUserId(String movieId, RatingRequest request) {
 		//TODO ispresent 아닌것도 처리
 		var movie = movieRepository.findById(movieId).get();
-		var tmdbMovieResponse = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
+		var tmdbRatingResponse = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
 				.sessionId(request.getSessionId())
 				.rating(request.getValue())
 				.build());
-		System.out.println(tmdbMovieResponse);
-		//TODO
-		userService.addRatingByUser(movieId, request);
+		var statusCode = tmdbRatingResponse.getBody().getStatusCode();
+ 
+		Optional<RatingDTO> rationDTO = Optional.empty();
+		if(1 == statusCode || 12 == statusCode) {
+			rationDTO = userService.addRatingByUser(movieId, request);
+		}
+		return rationDTO;
+
+	}
+
+	@Override
+	public void deleteRatingByUserId(String movieId, String sessionId) {
+		//TODO ispresent 아닌것도 처리
+		var movie = movieRepository.findById(movieId).get();
+		var tmdbRatingResponse = tmdbClient.deleteRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
+				.sessionId(sessionId)
+				.build());
+		// TODO DB 에서 삭제
+		var statusCode = tmdbRatingResponse.getBody().getStatusCode();
+		if(statusCode == 13 ) userService.deleteRatingByUser(movieId, sessionId);
 	}
 
 }
