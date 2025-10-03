@@ -1,14 +1,10 @@
 package com.netpickz.core.user.repository;
 
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.entity.UserRatingInfoEntity;
+import com.netpickz.core.user.entity.pk.UserRatingInfoPK;
 
-//@Repository
-public interface UserRatingInfoRepository extends JpaRepository<UserRatingInfoEntity, String>{
+public interface UserRatingInfoRepository extends JpaRepository<UserRatingInfoEntity, UserRatingInfoPK>{
 	
 }

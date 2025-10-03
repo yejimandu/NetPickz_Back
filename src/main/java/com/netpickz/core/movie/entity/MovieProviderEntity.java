@@ -2,38 +2,47 @@ package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
 
-import com.netpickz.common.entity.GenreEntity;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.netpickz.common.entity.ProvidersEntity;
+import com.netpickz.core.movie.entity.pk.MovieProviderPK;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
 @Table(name="movie_provider")
+@Builder
 public class MovieProviderEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+
+	@EmbeddedId
+	private MovieProviderPK id;
 	
 	@ManyToOne
-    @JoinColumn(name = "movie_id ", nullable = true)
+	@MapsId("movieId") 
+    @JoinColumn(name = "movie_id")
     private MovieEntity movieEntity;
 	
-    @OneToOne
-    @JoinColumn(name = "provider_id", nullable = true)
+	@ManyToOne
+    @MapsId("providerId") 
+    @JoinColumn(name = "provider_id")
     private ProvidersEntity providersEntity;
     
     @Column(name="created_at")
+    @UpdateTimestamp
 	private Timestamp createdAt;
 }

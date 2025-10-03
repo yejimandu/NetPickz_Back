@@ -15,6 +15,9 @@ public class TmdbMovieResponse {
 	@JsonProperty("poster_path")
 	private String posterPath;
 	
+	@JsonProperty("genre_ids")
+	private List<Integer> genreIds;
+	
 	@JsonProperty("genres")
 	private List<TmdbGenreResponse> genres;
 	
