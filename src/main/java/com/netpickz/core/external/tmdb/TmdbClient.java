@@ -244,7 +244,7 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-	public ResponseEntity<TmdbMovieResponse> addRating(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbRatingResponse> addRating(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.POST)
 				.uri(uriBuilder -> uriBuilder
@@ -255,22 +255,21 @@ public class TmdbClient  {
 			    .header(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
 				.bodyValue(Map.of("value", request.getRating()))
 				.retrieve()
-				.toEntity(TmdbMovieResponse.class)
+				.toEntity(TmdbRatingResponse.class)
 				.block();
 	} 
 
-	public ResponseEntity<TmdbMovieResponse> deleteRating(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbRatingResponse> deleteRating(TmdbMovieRequest request) {
 		//guest_session_id or seesion Id
 		return webClient
 				.method(HttpMethod.DELETE)
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("language", "ko-KR")
+						.queryParam("guest_session_id", request.getSessionId())
 						.build(request.getMovieId()))
-				.bodyValue(Map.of("guest_session_id", request.getGuestSessionId()))
 				.retrieve()
-				.toEntity(TmdbMovieResponse.class)
+				.toEntity(TmdbRatingResponse.class)
 				.block();
 	} 
 	
