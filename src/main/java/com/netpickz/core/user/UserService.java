@@ -1,5 +1,6 @@
 package com.netpickz.core.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.netpickz.api.movie.request.RatingRequest;
@@ -18,5 +19,7 @@ public interface UserService {
 	Optional<UserDTO> updateUser(UserRequest request);
 
 	void deleteRatingByUser(String movieId, String sessionId);
+
+	Optional<List<UserDTO>> getHistoryByUserId(String userId);
 
 }

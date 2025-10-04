@@ -1,5 +1,7 @@
 package com.netpickz.api.user;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +19,7 @@ import com.netpickz.core.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@RestController()
+@RestController
 @RequestMapping("/users")
 @Tag(name = "User", description = "사용자 관련 기능을 제공하는 컨트롤러")
 public class UserController {
@@ -53,9 +55,10 @@ public class UserController {
 	
 	@Operation(summary = "사용자 히스토리 정보 조회", description = "사용자 ID 기준으로 히스토리 내역을 조회합니다.")
 	@GetMapping("/{userId}/history")
-	public ResponseEntity<String> historyUser(
+	public ResponseEntity<List<UserDTO>> getHistoryByUserId(
 			@PathVariable(name = "userId") String userId) {
 		// TODO
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		var userDto =  userService.getHistoryByUserId(userId);
+		return  new ResponseEntity<List<UserDTO>>(userDto.isPresent() ? userDto.get() : null, HttpStatus.OK);
 	}
 }
