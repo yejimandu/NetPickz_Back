@@ -1,5 +1,6 @@
 package com.netpickz.core.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,19 @@ public class UserServiceImpl implements UserService {
 	public void deleteRatingByUser(String movieId, String sessionId) {
 		var sessionDto = sessionService.getSessionInfo(sessionId).get();
 		userRatingInfoRepository.deleteById(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build());
+	}
+
+	@Override
+	public Optional<List<UserDTO>> getHistoryByUserId(String userId) {
+		// TODO 널 체크
+		var userRatingEntity = userRatingInfoRepository.findByIdUserId(userId);
+		var userDto = userRatingEntity.stream().map(e -> UserDTO.builder()
+						.userId(e.getUserEntity().getUserId())
+						.movieId(e.getMovieEntity().getMovieId())
+						.sessionId(e.getGuestSessionId())
+						.build())
+						.toList();
+		return Optional.of(userDto);
 	}
 	
 }
