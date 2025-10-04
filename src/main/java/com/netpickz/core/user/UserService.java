@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.common.enumType.StateType;
 import com.netpickz.core.movie.RatingDTO;
 
 public interface UserService {
@@ -21,5 +22,7 @@ public interface UserService {
 	void deleteRatingByUser(String movieId, String sessionId);
 
 	Optional<List<UserDTO>> getHistoryByUserId(String userId);
+
+	int updateUserState(String userId, StateType type);
 
 }

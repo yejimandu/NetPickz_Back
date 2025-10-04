@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.common.enumType.StateType;
 import com.netpickz.core.movie.RatingDTO;
 import com.netpickz.core.movie.entity.MovieEntity;
 import com.netpickz.core.session.SessionService;
@@ -20,8 +22,13 @@ import com.netpickz.core.user.repository.UserRatingInfoRepository;
 import com.netpickz.core.user.repository.UserRepository;
 import com.netpickz.core.user.repository.UserRepositoryCustom;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
 	private UserRatingInfoRepository userRatingInfoRepository;
@@ -37,8 +44,7 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	private SessionService sessionService;
-	
-//	public Optional<UserDTO> addRatingByUser(UserDTO userDTO, Double rating) {
+
 	@Override
 	public Optional<RatingDTO> addRatingByUser(String movieId, RatingRequest request) {
 		//TODO get 아닌 경우 처리 필요
@@ -65,10 +71,22 @@ public class UserServiceImpl implements UserService {
 	public Optional<UserDTO> createUser(UserRequest request) {
 		var userEntity = UserEntity.builder().userId(request.getUserId()).build();
 		var users = userRepository.saveAndFlush(userEntity);
-		var userInfo = UserInfoEntity.builder().userEntity(users).name(request.getName()).build();
-		userInfoRepository.save(userInfo);
 		
-		var userDto = UserDTO.builder().userId(users.getUserId()).name(userInfo.getName()).build();
+		var encodePw = passwordEncoder.encode(request.getPassword());
+		var userInfoEntity = UserInfoEntity.builder().userEntity(users).name(request.getName())
+				.password(encodePw)
+				.state(StateType.정상)
+				.email(request.getEmail())
+				.emailVerified(false)
+				.build();
+		var userInfo =  userInfoRepository.save(userInfoEntity);
+		
+		var userDto = UserDTO.builder()
+				.userId(users.getUserId())
+				.name(userInfo.getName())
+				.email(userInfo.getEmail())
+				.state(userInfo.getState().toString())
+				.build();
 		
 		return Optional.of(userDto);
 	}
@@ -105,5 +123,15 @@ public class UserServiceImpl implements UserService {
 						.toList();
 		return Optional.of(userDto);
 	}
-	
+
+	@Override
+	public int updateUserState(String userId, StateType type) {
+		System.out.println(type.getValue());
+		userRepositoryCustom.updateStateByUserId(userId, type);
+		// TODO get 아닌 것도 체크
+		var user = userInfoRepository.findById(userId).get();
+		
+		return type.equals(user.getState()) ? 1 : 0;
+	}
+
 }
