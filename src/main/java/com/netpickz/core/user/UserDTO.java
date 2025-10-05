@@ -25,4 +25,9 @@ public class UserDTO {
 	
 	@Schema(description = "이메일", example = "ewfdnis@naver.com", required = true)
 	private String email;
+	
+	private String movieId;
+	
+	@Schema(description = "상태", example = "정상", required = true)
+	private String state;
 }
