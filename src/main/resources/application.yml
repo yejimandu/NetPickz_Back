@@ -13,7 +13,21 @@ spring:
     hibernate:
       ddl-auto: none 
 #      ddl-auto: create 
-    
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: jeonsongyong27@gmail.com
+    password: qozi ilrs rbgk qksz
+    properties:
+     mail: 
+      smtp:
+       auth: true	
+       starttls:
+        enable: true    
+  data:
+    redis:
+      host: localhost  # Redis 서버 주소
+      port: 6379       # 기본 포트   
 server:
   servlet:
     context-path: /
@@ -28,6 +42,4 @@ logging:
   #api-docs:
    # path: /home
    
-#database
-#spring.datasource.type
   
