@@ -35,6 +35,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 		var dto = UserDTO.builder()
 				.userId(userInfo.getUserId())
 				.name(userInfo.getName())
+				.password(userInfo.getPassword())
 				.build();
 		return Optional.of(dto);
 	}
