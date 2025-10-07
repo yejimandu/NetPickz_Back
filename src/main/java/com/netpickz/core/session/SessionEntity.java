@@ -2,6 +2,8 @@ package com.netpickz.core.session;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.core.user.entity.UserEntity;
 
