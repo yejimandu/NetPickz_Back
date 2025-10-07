@@ -28,6 +28,8 @@ spring:
     redis:
       host: localhost  # Redis 서버 주소
       port: 6379       # 기본 포트   
+  jwt:
+   secret: MyNetpickzSecretKey!!2025jwtSuperLongRandomPart122! # jwt 복호화 시 사용
 server:
   servlet:
     context-path: /
