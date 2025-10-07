@@ -30,4 +30,6 @@ public class UserDTO {
 	
 	@Schema(description = "상태", example = "정상", required = true)
 	private String state;
+
+	private String password;
 }
