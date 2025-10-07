@@ -250,9 +250,9 @@ public class TmdbClient  {
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("session_id", request.getSessionId())
+						.queryParam("guest_session_id", request.getSessionId())
 						.build(request.getMovieId()))
-				.body(BodyInserters.fromValue(Map.of("value", request.getRating())))
+				.bodyValue(Map.of("value", request.getRating()))
 				.retrieve()
 				.toEntity(TmdbRatingResponse.class)
 				.block();

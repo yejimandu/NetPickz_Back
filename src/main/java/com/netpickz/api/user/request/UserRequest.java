@@ -20,6 +20,8 @@ public class UserRequest {
 
 	@Schema(description = "사용자 이메일", example = "hongGuk@naver.com")
 	private String email;
-	
+
+	@Schema(description = "사용자 비밀번호", example = "hongGuk!@34532")
+	private String password;
 	
 }
