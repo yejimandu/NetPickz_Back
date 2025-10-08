@@ -3,7 +3,6 @@ package com.netpickz.core.mail;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,9 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
 
-	@Autowired
-	private JavaMailSender mailSender;
-	
+	private final JavaMailSender mailSender;
 	private final StringRedisTemplate redisTemplate;
 	
 	@Override

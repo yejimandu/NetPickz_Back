@@ -1,6 +1,5 @@
 package com.netpickz.api.session;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,26 +7,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.netpickz.api.login.LoginController;
-import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.SessionType;
-import com.netpickz.core.session.SessionDTO;
-import com.netpickz.core.session.SessionService;
+import com.netpickz.core.session.dto.SessionDTO;
+import com.netpickz.core.session.service.SessionService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/session")
 @Tag(name = "Session", description = "세션 관련 기능을 제공하는 컨트롤러")
 public class SessionController {
 
 
-	@Autowired
-	private SessionService sessionService;
+	private final SessionService sessionService;
 
     @Operation(summary = "게스트 세션 생성", description = "사용자가 tmdb 기능을 사용하기 위한 게스트 세션 생성")
     @Parameter(name = "userId", required = true, description = "tmdb 게스트 세션을 생성할 사용자 ID")
