@@ -1,6 +1,7 @@
 package com.netpickz.common.jwt;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -32,25 +33,21 @@ public class CustomLogoutFilter extends GenericFilterBean{
 
 	private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws IOException, ServletException {
-	     //path and method verify
-		if(!request.getRequestURI().equals("^\\\\/logout$")) {
-			filterChain.doFilter(request, response);
-			return;
-		}
-		// 
+	     //path and method verify 
+		
 		var requestMethod  = request.getMethod();
-		if(!requestMethod.equals("POST")) {
+		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
+		
 	    //get refresh token
-        String refresh = null;
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("refresh")) {
-                refresh = cookie.getValue();
-            }
-        }
+	    var cookies = request.getCookies();
+	    var refresh =  Arrays.stream(cookies)
+	            .filter(c -> "refresh".equals(c.getName()))
+	            .map(Cookie::getValue)
+	            .findFirst()
+	            .orElse(null); 
         
         //refresh null check
         if(refresh == null) {
@@ -76,7 +73,7 @@ public class CustomLogoutFilter extends GenericFilterBean{
 
         //DB에 저장되어 있는지 확인
         var username = jwtUtil.getUsername(refresh);
-        var isExist = userTokensRepository.existsById(username);
+        var isExist = userTokensRepository.existsById(username); // service로 바꾸기
         if(!isExist) {
         	//response status code
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

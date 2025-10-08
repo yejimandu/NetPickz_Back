@@ -3,8 +3,6 @@ package com.netpickz.api.movie;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,24 +22,24 @@ import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.SortType;
 import com.netpickz.common.enumType.TimeType;
-import com.netpickz.core.movie.MovieDTO;
-import com.netpickz.core.movie.MovieService;
-import com.netpickz.core.movie.RatingDTO;
+import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
+import com.netpickz.core.movie.service.MovieService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/movies")
 @Tag(name = "Movies", description = "영화 관련 기능을 제공하는 컨트롤러입니다.")
 public class MovieController {
 
-	@Autowired
-	@Lazy
-	private MovieService movieService;
+	private final MovieService movieService;
 
 	@Operation(summary = "영화 정보 조회", description = "Tmdb 영화 ID 기준으로 영화 정보를 조회합니다.")
     @Parameter(name = "id", required = true, description = "TMDB 영화 고유 ID")
