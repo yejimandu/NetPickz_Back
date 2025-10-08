@@ -1,29 +1,28 @@
-package com.netpickz.core.session;
+package com.netpickz.core.session.service;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.netpickz.api.login.LoginController;
+
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
-import com.netpickz.core.external.tmdb.TmdbSessionResponse;
+import com.netpickz.core.session.dto.SessionDTO;
+import com.netpickz.core.session.entity.SessionEntity;
+import com.netpickz.core.session.repository.SessionRepository;
 import com.netpickz.core.user.entity.UserEntity;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class SessionServiceimpl implements SessionService {
 
-	@Autowired
-	private TmdbClient tmdbClient;
-	
-	@Autowired
-	private SessionRepository sessionRepository;
-
+	private final TmdbClient tmdbClient;
+	private final SessionRepository sessionRepository;
 	
 	@Override
 	public Optional<SessionDTO> createSession(String userId, SessionType sessionType) {

@@ -1,4 +1,4 @@
-package com.netpickz.core.user;
+package com.netpickz.common.jwt;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -6,7 +6,6 @@ import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ public class CustomUserDetails implements UserDetails{
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
 		return  Collections.emptyList();
 	}
 
@@ -29,7 +27,6 @@ public class CustomUserDetails implements UserDetails{
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
 		return userInfoEntity.getUserId();
 	}
 

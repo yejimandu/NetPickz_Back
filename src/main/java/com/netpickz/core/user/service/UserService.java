@@ -1,4 +1,4 @@
-package com.netpickz.core.user;
+package com.netpickz.core.user.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,11 +6,11 @@ import java.util.Optional;
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.movie.RatingDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
+import com.netpickz.core.user.dto.UserDTO;
 
 public interface UserService {
 
-//	Optional<UserDTO> addRatingByUser(UserDTO userDTO, Double rationg);
 	Optional<RatingDTO> addRatingByUser(String movieId, RatingRequest request);
 
 	Optional<UserDTO> createUser(UserRequest request);

@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.user.UserDTO;
+import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.entity.QUserEntity;
 import com.netpickz.core.user.entity.QUserInfoEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;

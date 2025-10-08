@@ -1,4 +1,4 @@
-package com.netpickz.core.movie;
+package com.netpickz.core.movie.dto;
 
 import java.util.List;
 

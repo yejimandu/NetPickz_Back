@@ -2,6 +2,7 @@ package com.netpickz.core.auth.entity;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.netpickz.core.user.entity.UserEntity;
@@ -25,7 +26,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @Table(name="user_tokens")
 public class UserTokensEntity {
-
+	
+	@Comment("사용자 아이디")
 	@Id
 	@Column(name="user_id")
 	private String userId;
@@ -41,6 +43,7 @@ public class UserTokensEntity {
 	@Column(name="refresh_token")
 	private String refreshToken;
 	
+	@Comment("액세스토큰 만료일")
 	@Column(name="expires_at")
 	private String expiresAt; // long
 	

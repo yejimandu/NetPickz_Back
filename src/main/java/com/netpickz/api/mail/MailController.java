@@ -1,6 +1,5 @@
 package com.netpickz.api.mail;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,14 +14,15 @@ import com.netpickz.core.mail.MailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/mail")
 @Tag(name = "Mail", description = "이메일 관련 기능을 제공하는 컨트롤러입니다.")
 public class MailController {
 	
-	@Autowired
-	private MailService mailService;
+	private final MailService mailService;
 	
 	//	TODO 이메일 인증 코드 발송 
 	@Operation(summary = "이메일 인증 코드", description = "이메일 인증 코드 발송합니다.")

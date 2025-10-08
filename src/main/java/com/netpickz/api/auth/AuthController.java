@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.auth.request.AcessTokenRequest;
 import com.netpickz.api.auth.request.AuthRequest;
 import com.netpickz.api.auth.request.LoginRequest;
-import com.netpickz.core.auth.AuthService;
-import com.netpickz.core.auth.TokenDTO;
+import com.netpickz.core.auth.dto.TokenDTO;
+import com.netpickz.core.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -27,10 +27,8 @@ public class AuthController {
 
 	private final AuthService authService;
 	
-	@Operation(summary = "swagger에서 사용자 로그인 처리(테스트 용) ", description = "사용자 로그인 처리")
-	
+	@Operation(summary = "swagger에서 사용자 로그인 (테스트 용) ", description = "사용자 로그인 처리합니다.")
 	@PostMapping("/swagger-login")
-	@SecurityRequirement(name = "")
 	public ResponseEntity<TokenDTO> userLogin(
 			@org.springframework.web.bind.annotation.RequestBody LoginRequest request)  {
 		// TODO
@@ -38,8 +36,15 @@ public class AuthController {
 		return  new ResponseEntity<TokenDTO>(tokenDto, HttpStatus.OK);
 	}
 	
+	@Operation(summary = "swagger에서 사용자 로그아웃 (테스트 용) ", description = "사용자 로그아웃 처리합니다.")
+	@PostMapping("/swagger-logout")
+	public ResponseEntity<String> userLogout()  {
+		// TODO
+//		var tokenDto = authService.userLogout(request);
+		return  new ResponseEntity<String>("", HttpStatus.OK);
+	}
+	
 	@Operation(summary = "토큰 검증 ", description = "토큰기준으로 검증을 한다.")
-	@SecurityRequirement(name = "bearerAuth")
 	@PostMapping("/verify")
 	public ResponseEntity<Map> verifyToken(
 			@org.springframework.web.bind.annotation.RequestBody AcessTokenRequest request)  {
