@@ -1,14 +1,15 @@
 package com.netpickz.common.jwt;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.netpickz.core.auth.AuthService;
-import com.netpickz.core.user.CustomUserDetails;
+import com.netpickz.common.util.CookieUtil;
+import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.user.entity.UserInfoEntity;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -35,32 +36,33 @@ public class JWTFilter extends OncePerRequestFilter{
 			filterChain.doFilter(request, response);
 			return;
 		}
-		String refresh = null;
+		
+//		String refresh = null;
 	    var cookies = request.getCookies();
-	    for (Cookie cookie : cookies) {
-	        if (cookie.getName().equals("refresh")) {
-	            refresh = cookie.getValue();
-	        }
-	    }
+	    var refresh =  Arrays.stream(cookies)
+	            .filter(c -> "refresh".equals(c.getName()))
+	            .map(Cookie::getValue)
+	            .findFirst()
+	            .orElse(null); 
 	
 		// 토큰 만료 여부 확인
 		try {
 			jwtUtil.isExpired(accessToken);
 		}catch (ExpiredJwtException e) {
 			try {
+				// TODO 테스트 필요
 				jwtUtil.isExpired(refresh);
-				var dd = authService.reissue(accessToken, refresh);
+				var tokens = authService.reissue(accessToken, refresh);
 				
-				response.setHeader("access", dd.getAccessToken());
-				response.addCookie(createCookie("refresh", dd.getRefreshToken()));
+				response.setHeader("access", tokens.getAccessToken());
+				response.addCookie(CookieUtil.createCookie("refresh", tokens.getRefreshToken()));
 				response.setStatus(HttpStatus.OK.value());
 				return;
 			}catch (ExpiredJwtException  f) {
-				// TODO 토큰 재발급
-//				// response body 
+				// response body 
 				var writer = response.getWriter();
 				writer.print("access token expired");
-//				// response status
+				// response status
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
 			}
@@ -68,7 +70,8 @@ public class JWTFilter extends OncePerRequestFilter{
 		
 		// 토큰이 access 인지 체크
 		var category = jwtUtil.getCategory(accessToken);
-		if(category != "access") {
+//		if(category != "access") {
+		if(!"access".equals(category)) {
 			// response body 
 			var writer = response.getWriter();
 			writer.print("invalid access token");
@@ -77,7 +80,6 @@ public class JWTFilter extends OncePerRequestFilter{
 			return;
 		}
 		
-		//
 		var username = jwtUtil.getUsername(accessToken);
 		// userInfoEntity 생성해서 값 set
 		var userInfoEntiy = UserInfoEntity.builder().userId(username).build();
@@ -90,14 +92,8 @@ public class JWTFilter extends OncePerRequestFilter{
 		filterChain.doFilter(request, response);
 	}
 	
-	private Cookie createCookie(String key, String value) {
-		var cookie = new Cookie(key, value);
-		cookie.setMaxAge(24*60*60);
-//		cookie.setSecure(true); https 통신을 하는 경우 활성화
-//		cookie.setPath("/");
-		cookie.setHttpOnly(true);
-		return cookie;
-	}
+	
+	// TODO 추후 제거 
 //	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 //			throws ServletException, IOException {
 //		

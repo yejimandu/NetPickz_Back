@@ -1,6 +1,5 @@
-package com.netpickz.core.auth;
+package com.netpickz.core.auth.service;
 
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -9,12 +8,13 @@ import com.netpickz.api.auth.request.LoginRequest;
 import com.netpickz.common.enumType.TokenStatusType;
 import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.common.util.IdGenerator;
+import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.entity.TokenIssuanceHistoryEntity;
 import com.netpickz.core.auth.entity.UserTokensEntity;
 import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
 import com.netpickz.core.auth.repository.UserTokensRepository;
-import com.netpickz.core.user.UserService;
 import com.netpickz.core.user.entity.UserEntity;
+import com.netpickz.core.user.service.UserService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityManager;
@@ -131,5 +131,22 @@ public class AuthServiceImpl implements AuthService {
         
         // TODO DB에 갱신 리턴 타입 고민
         return tokenDto;
+	}
+
+	@Override
+	public TokenDTO createGuestToken() {
+		var access = jwtUtil.createJwt("access", "guest",  600000L); // 10분
+	    var refresh = jwtUtil.createJwt("refresh", "guest", 3600000L); // 24시간	
+	    
+//	    var accessExpiresAt = jwtUtil.getExpiresAt(access);
+//	    var issuedAt = jwtUtil.getIssuedAt(refresh);
+//	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
+//	    var accessHash = jwtUtil.hashToken(access);
+//	    var refreshHash = jwtUtil.hashToken(refresh);
+
+		return TokenDTO.builder()
+				.accessToken(access)
+			    .refreshToken(refresh)
+			    .build();
 	}
 }

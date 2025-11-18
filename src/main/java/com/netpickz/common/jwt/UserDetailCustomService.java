@@ -1,4 +1,4 @@
-package com.netpickz.core.user;
+package com.netpickz.common.jwt;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,15 +17,10 @@ public class UserDetailCustomService implements UserDetailsService{
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) {
-        
-		var ddd = userInfoRepository.findById(username)
+		var user = userInfoRepository.findById(username)
 				.map(CustomUserDetails :: new )
 				.orElseThrow(() -> new UsernameNotFoundException("해당 사용자는 존재하지 않습니다." + username));
-		System.out.println(ddd);
-		return ddd;
-//		return userInfoRepository.findById(username)
-//				.map(CustomUserDetails :: new )
-//				.orElseThrow(() -> new UsernameNotFoundException("해당 사용자는 존재하지 않습니다." + username));
+		return user;
 	}
 
 }

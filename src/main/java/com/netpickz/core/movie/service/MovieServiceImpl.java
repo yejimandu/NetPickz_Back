@@ -1,9 +1,8 @@
-package com.netpickz.core.movie;
+package com.netpickz.core.movie.service;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.netpickz.api.movie.request.FilterRequest;
@@ -24,6 +23,8 @@ import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.external.tmdb.TmdbMovieCategory;
 import com.netpickz.core.external.tmdb.TmdbMovieRequest;
+import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.movie.entity.MovieEntity;
 import com.netpickz.core.movie.entity.MovieGenreEntity;
 import com.netpickz.core.movie.entity.MovieInfoEntity;
@@ -35,42 +36,24 @@ import com.netpickz.core.movie.repository.MovieInfoRepository;
 import com.netpickz.core.movie.repository.MovieProviderRepository;
 import com.netpickz.core.movie.repository.MovieRepository;
 import com.netpickz.core.movie.repository.MovieRepositoryCustom;
-import com.netpickz.core.user.UserDTO;
-import com.netpickz.core.user.UserService;
+import com.netpickz.core.user.service.UserService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
-	@Autowired
-	private MovieRepository movieRepository;
-	
-	@Autowired
-	private MovieRepositoryCustom movieRepositoryCustom;
-	
-	@Autowired
-	private MovieInfoRepository movieInfoRepository;
-	
-	@Autowired
-	private GenreRepository genreRepository;
-	
-	@Autowired
-	private CertificationRepository certificationRepository;
-	
-	@Autowired
-	private ProvidersRepository providersRepository;
-	
-	@Autowired
-	private MovieProviderRepository movieProviderRepository;
-	
-	@Autowired
-	private MovieGenreRepository movieGenreRepository;
-	
-	@Autowired
-	private TmdbClient tmdbClient;
-	
-	@Autowired
-	private UserService userService;
-
+	private final MovieRepository movieRepository;
+	private final MovieRepositoryCustom movieRepositoryCustom;
+	private final MovieInfoRepository movieInfoRepository;
+	private final GenreRepository genreRepository;
+	private final CertificationRepository certificationRepository;
+	private final ProvidersRepository providersRepository;
+	private final MovieProviderRepository movieProviderRepository;
+	private final MovieGenreRepository movieGenreRepository;
+	private final TmdbClient tmdbClient;
+	private final UserService userService;
 	
 	@Override
 	public Optional<MovieDTO> getMovieInfoByExternalId(String id) {
