@@ -132,4 +132,21 @@ public class AuthServiceImpl implements AuthService {
         // TODO DB에 갱신 리턴 타입 고민
         return tokenDto;
 	}
+
+	@Override
+	public TokenDTO createGuestToken() {
+		var access = jwtUtil.createJwt("access", "guest",  600000L); // 10분
+	    var refresh = jwtUtil.createJwt("refresh", "guest", 3600000L); // 24시간	
+	    
+//	    var accessExpiresAt = jwtUtil.getExpiresAt(access);
+//	    var issuedAt = jwtUtil.getIssuedAt(refresh);
+//	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
+//	    var accessHash = jwtUtil.hashToken(access);
+//	    var refreshHash = jwtUtil.hashToken(refresh);
+
+		return TokenDTO.builder()
+				.accessToken(access)
+			    .refreshToken(refresh)
+			    .build();
+	}
 }

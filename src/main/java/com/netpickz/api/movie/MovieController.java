@@ -87,7 +87,7 @@ public class MovieController {
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "원하는 영화를 시청할 수 있는 OTT 목록을 조회합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("{movieId}/providers")
+	@GetMapping("/{movieId}/providers")
 	public ResponseEntity<List<MovieDTO>> getMovieProviderList(   
 			@PathVariable(name = "movieId") String movieId) {
 		var movieDtos = movieService.getProviderByMovieId(movieId);
@@ -133,7 +133,7 @@ public class MovieController {
 	// TODO
 	@Operation(summary = "영화 평가 등록", description = "사용자 ID 기준으로 영화 평가를 등록합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@PostMapping("{movieId}/rating")
+	@PostMapping("/{movieId}/rating")
 	public ResponseEntity<RatingDTO> addRating(
 			@PathVariable(name="movieId") String movieId,
 			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
@@ -146,7 +146,7 @@ public class MovieController {
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
 //	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@Parameter(name = "sessionId", required = true, description = "세션아이디")
-	@DeleteMapping("{movieId}/rating")
+	@DeleteMapping("/{movieId}/rating")
 	public ResponseEntity<String> deleteRating(
 			@PathVariable(name = "movieId") String movieId,
 			@RequestParam(name="sessionId") String sessionId) {
