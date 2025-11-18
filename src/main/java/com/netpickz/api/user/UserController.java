@@ -16,20 +16,21 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.user.UserDTO;
-import com.netpickz.core.user.UserService;
+import com.netpickz.core.user.dto.UserDTO;
+import com.netpickz.core.user.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
 @Tag(name = "User", description = "사용자 관련 기능을 제공하는 컨트롤러")
 public class UserController {
 
-	@Autowired
-	private UserService userService;
+	private final UserService userService;
 
 	@Operation(summary = "사용자 정보 조회", description = "사용자 ID 기준으로 사용자 정보를 조회합니다.")
 	@GetMapping("/{userId}")

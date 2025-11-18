@@ -3,8 +3,6 @@ package com.netpickz.api.movie;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,24 +22,24 @@ import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.SortType;
 import com.netpickz.common.enumType.TimeType;
-import com.netpickz.core.movie.MovieDTO;
-import com.netpickz.core.movie.MovieService;
-import com.netpickz.core.movie.RatingDTO;
+import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
+import com.netpickz.core.movie.service.MovieService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/movies")
 @Tag(name = "Movies", description = "영화 관련 기능을 제공하는 컨트롤러입니다.")
 public class MovieController {
 
-	@Autowired
-	@Lazy
-	private MovieService movieService;
+	private final MovieService movieService;
 
 	@Operation(summary = "영화 정보 조회", description = "Tmdb 영화 ID 기준으로 영화 정보를 조회합니다.")
     @Parameter(name = "id", required = true, description = "TMDB 영화 고유 ID")
@@ -89,7 +87,7 @@ public class MovieController {
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "원하는 영화를 시청할 수 있는 OTT 목록을 조회합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("{movieId}/providers")
+	@GetMapping("/{movieId}/providers")
 	public ResponseEntity<List<MovieDTO>> getMovieProviderList(   
 			@PathVariable(name = "movieId") String movieId) {
 		var movieDtos = movieService.getProviderByMovieId(movieId);
@@ -135,7 +133,7 @@ public class MovieController {
 	// TODO
 	@Operation(summary = "영화 평가 등록", description = "사용자 ID 기준으로 영화 평가를 등록합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@PostMapping("{movieId}/rating")
+	@PostMapping("/{movieId}/rating")
 	public ResponseEntity<RatingDTO> addRating(
 			@PathVariable(name="movieId") String movieId,
 			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
@@ -148,7 +146,7 @@ public class MovieController {
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
 //	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@Parameter(name = "sessionId", required = true, description = "세션아이디")
-	@DeleteMapping("{movieId}/rating")
+	@DeleteMapping("/{movieId}/rating")
 	public ResponseEntity<String> deleteRating(
 			@PathVariable(name = "movieId") String movieId,
 			@RequestParam(name="sessionId") String sessionId) {

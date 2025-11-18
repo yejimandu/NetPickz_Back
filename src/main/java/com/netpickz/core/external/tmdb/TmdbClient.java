@@ -1,25 +1,18 @@
 package com.netpickz.core.external.tmdb;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
-import com.netpickz.api.movie.MovieController;
-import com.netpickz.api.movie.request.FilterRequest;
-import com.netpickz.core.session.SessionDTO;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.netpickz.api.movie.request.FilterRequest;
 
 @Component
 public class TmdbClient  {
@@ -27,7 +20,7 @@ public class TmdbClient  {
 	private final WebClient webClient;
 	private String apiKey =  "849673b235e88d4045f4d45e77d2de71";
 	
-	public TmdbClient(WebClient.Builder builder, MovieController movieController) {
+	public TmdbClient(WebClient.Builder builder) {
 		this.webClient = builder.baseUrl("https://api.themoviedb.org/3")
 				.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
 				.build();

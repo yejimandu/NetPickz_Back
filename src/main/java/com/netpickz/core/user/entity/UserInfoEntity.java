@@ -7,7 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.common.enumType.SessionType;
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.session.SessionEntity;
+import com.netpickz.core.session.entity.SessionEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
