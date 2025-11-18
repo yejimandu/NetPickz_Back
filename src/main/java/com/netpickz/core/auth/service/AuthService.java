@@ -10,4 +10,5 @@ public interface AuthService {
 	TokenDTO createToken(String username);
 	Boolean verifyToken(AcessTokenRequest request);
 	TokenDTO reissue(String accessToken, String refrechToken);
+	TokenDTO createGuestToken();
 }
