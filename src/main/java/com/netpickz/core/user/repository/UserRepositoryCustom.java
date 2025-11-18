@@ -3,7 +3,7 @@ package com.netpickz.core.user.repository;
 import java.util.Optional;
 
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.user.UserDTO;
+import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.entity.UserInfoEntity;
 
 public interface UserRepositoryCustom {

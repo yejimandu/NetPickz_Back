@@ -1,4 +1,4 @@
-package com.netpickz.core.user;
+package com.netpickz.core.user.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,9 +10,10 @@ import org.springframework.stereotype.Service;
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.movie.RatingDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.movie.entity.MovieEntity;
-import com.netpickz.core.session.SessionService;
+import com.netpickz.core.session.service.SessionService;
+import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
 import com.netpickz.core.user.entity.UserRatingInfoEntity;
@@ -29,21 +30,11 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
 
 	private final PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private UserRatingInfoRepository userRatingInfoRepository;
-
-	@Autowired
-	private UserInfoRepository userInfoRepository;
-	
-	@Autowired
-	private UserRepository userRepository;
-	
-	@Autowired
-	private UserRepositoryCustom userRepositoryCustom;
-	
-	@Autowired
-	private SessionService sessionService;
+	private final UserRatingInfoRepository userRatingInfoRepository;
+	private final UserInfoRepository userInfoRepository;
+	private final UserRepository userRepository;
+	private final UserRepositoryCustom userRepositoryCustom;
+	private final SessionService sessionService;
 
 	@Override
 	public Optional<RatingDTO> addRatingByUser(String movieId, RatingRequest request) {

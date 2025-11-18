@@ -1,4 +1,4 @@
-package com.netpickz.core.session;
+package com.netpickz.core.session.entity;
 
 import java.sql.Timestamp;
 

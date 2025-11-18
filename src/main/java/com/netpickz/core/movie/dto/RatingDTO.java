@@ -1,4 +1,4 @@
-package com.netpickz.core.movie;
+package com.netpickz.core.movie.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
