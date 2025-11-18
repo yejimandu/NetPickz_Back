@@ -1,0 +1,52 @@
+package com.netpickz.common.handler;
+
+import java.time.LocalDateTime;
+
+import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+import com.netpickz.common.dto.ApiResponse;
+// 1. ResponseBodyAdvideHandler 구현
+// 2. 반환 타입 클래스 구현 > apiResponse
+// 3. swagger 사용시 swagger 관련 요청은 무시하도록 처리
+// 4. 컨트롤러 쪽에서 dto만 반환하도록 처리.
+@RestControllerAdvice
+public class ResponseBodyAdvideHandler implements ResponseBodyAdvice<Object>{
+
+	@Override
+	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+		System.out.println("supports");
+		return !returnType.getDeclaringClass().getName().contains("OpenApiResource");
+	}
+
+	@Override
+	public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+			Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
+			ServerHttpResponse response) {
+		// TODO Auto-generated method stub
+		
+	    String path = request.getURI().getPath();
+	    if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")) {
+	        return body; // Swagger 관련 요청은 그대로 반환
+	    }
+
+		 if (body instanceof ApiResponse) {
+	            return body;
+	        }
+		 System.out.println(returnType);
+		return ApiResponse.builder()
+				.success(true)
+				.message("요청 성공")
+				.code("SUCCESS")
+				.timeStamp(LocalDateTime.now())
+				.data(body)
+				.status(HttpStatus.OK.value()).build();
+	}
+
+}

@@ -1,4 +1,4 @@
-package com.netpickz.core.movie;
+package com.netpickz.core.movie.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +11,8 @@ import com.netpickz.common.dto.ProviderDTO;
 import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.TimeType;
+import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.RatingDTO;
 
 public interface MovieService {
 

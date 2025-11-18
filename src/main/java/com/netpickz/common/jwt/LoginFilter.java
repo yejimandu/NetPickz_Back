@@ -11,7 +11,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.api.auth.request.LoginRequest;
-import com.netpickz.core.auth.AuthService;
+import com.netpickz.common.util.CookieUtil;
+import com.netpickz.core.auth.service.AuthService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 	
 	 public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, AuthService authService) {
 		super.setAuthenticationManager(authenticationManager); // 부모에 세팅
-//        setFilterProcessesUrl("/swagger-login"); // 경로 지정
         setFilterProcessesUrl("/auth/login"); // 경로 지정     
         this.jwtUtil = jwtUtil;
         this.authService = authService;
@@ -75,26 +75,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authentication) throws IOException, ServletException {
 		var username = authentication.getName();
-
-		// 토큰 생성
-//		var access = jwtUtil.createJwt("access", username,  600000L); // 10분
-//	    var refresh = jwtUtil.createJwt("refresh", username, 86400000L); // 24시간	
-		
-	    // TODO 토큰 생성 및 정보 DB에 저장하기.
 	    var tokens = authService.createToken(username);
-	    
 	    response.setHeader("access", tokens.getAccessToken());
-	    response.addCookie(createCookie("refresh", tokens.getRefreshToken()));
+	    response.addCookie(CookieUtil.createCookie("refresh", tokens.getRefreshToken()));
 	    response.setStatus(HttpStatus.OK.value());
-	}
-	// TODO 합치지
-	private Cookie createCookie(String key, String value) {
-		var cookie = new Cookie(key, value);
-		cookie.setMaxAge(24*60*60);
-//		cookie.setSecure(true); https 통신을 하는 경우 활성화
-//		cookie.setPath("/");
-		cookie.setHttpOnly(true);
-		return cookie;
 	}
 
 	// TODO 로그인 실패 시 실행 되는 메소드
@@ -103,6 +87,5 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 			AuthenticationException failed) throws IOException, ServletException {
 		response.setStatus(401);
 	}
-
 	
 }
