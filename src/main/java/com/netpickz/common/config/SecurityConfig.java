@@ -43,12 +43,15 @@ public class SecurityConfig {
 		http
 			.csrf( auth -> auth.disable()) 		
 			.cors((cors) -> cors.configurationSource(corsConfigurationSource))	
+//			.cors().and().csrf().disable()
 			.formLogin((auth) -> auth.disable())								// 폼 로그인 disable
 			.httpBasic((auth) -> auth.disable())								// http basic 인증 방식 disable
 			.authorizeHttpRequests((auth) -> auth								// 경로별 인가 작업
-				.requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-				.anyRequest().authenticated())
+                .requestMatchers("/auth/**", "/auth/login", "/swagger-ui/**", "/v3/api-docs/**", "/users").permitAll()
+                .requestMatchers("/movies/**", "/mail/**").permitAll()  // TODO 추후에 패스 조절 필요
+                .anyRequest().authenticated())
 //			.exceptionHandling(null)
+			.exceptionHandling
 			.addFilterBefore(jwtFilter, LoginFilter.class)
 			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, authService), UsernamePasswordAuthenticationFilter.class)
 			.addFilterAt(customLogoutFilter, LogoutFilter.class)
