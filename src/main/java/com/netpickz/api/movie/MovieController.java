@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@CrossOrigin(origins = "http://localhost:5173") //
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/movies")
@@ -53,7 +55,7 @@ public class MovieController {
 	public ResponseEntity<MovieDTO> getMovieInfoByExternalId(
 			@PathVariable(name = "id") String id) {
 		var movieDTO =  movieService.getMovieInfoByExternalId(id);
-		return  new ResponseEntity<MovieDTO>(movieDTO.isPresent() ? movieDTO.get() : null , HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
 	}
 	
 	@Operation(summary = "영화 정보 조회", description = "영화 아이디 기준으로 영화 정보를 조회합니다.")
@@ -64,7 +66,7 @@ public class MovieController {
 			@PathVariable(name = "movieId") String movieId, 
 			@RequestParam(name = "asynType") AsyncType type) {
 		var movieDTO =  movieService.getMovieInfoByMovieIdAndType(movieId, type);
-		return  new ResponseEntity<MovieDTO>(movieDTO.isPresent() ? movieDTO.get() : null , HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
 	}
 	
 	@Operation(summary = "타입별 영화 목록 조회", description = "원하는 영화 목록을 조회합니다.")
@@ -73,7 +75,7 @@ public class MovieController {
 	public ResponseEntity<List<MovieDTO>> getMovieList(   
 		    @RequestParam(name = "category") MovieCategory category) {
 		var movieDTOs =  movieService.getMovieListByType(category);
-		return  new ResponseEntity<List<MovieDTO>>(movieDTOs.isPresent()? movieDTOs.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
 	}
 	
 	@Operation(summary = "일간, 주간 기준으로 인기 영화 목록 조회", description = "일간, 주간 기준으로 원하는 영화 목록을 조회합니다.")
@@ -81,8 +83,9 @@ public class MovieController {
 	@GetMapping("/trending")
 	public ResponseEntity<List<MovieDTO>> getMovieListByTime(   
 		    @RequestParam(name = "type") TimeType timeType) {
+		System.out.println("getMovieListByTime");
 		var movieDTOs =  movieService.getMovieListByTimeType(timeType);
-		return  new ResponseEntity<List<MovieDTO>>(movieDTOs.isPresent()? movieDTOs.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
 	}
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "원하는 영화를 시청할 수 있는 OTT 목록을 조회합니다.")
@@ -90,8 +93,8 @@ public class MovieController {
 	@GetMapping("/{movieId}/providers")
 	public ResponseEntity<List<MovieDTO>> getMovieProviderList(   
 			@PathVariable(name = "movieId") String movieId) {
-		var movieDtos = movieService.getProviderByMovieId(movieId);
-		return  new ResponseEntity<List<MovieDTO>>(movieDtos.isPresent() ? movieDtos.get() : null, HttpStatus.OK);
+		var movieDTOs = movieService.getProviderByMovieId(movieId);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
 	}
 	
 	@Operation(summary = "비슷한 영화 목록 조회", description = "영화 ID 기준으로 비슷한 영화 목록을 조회합니다.")
@@ -99,8 +102,8 @@ public class MovieController {
 	@GetMapping("/{movieId}/similar")
 	public ResponseEntity<List<MovieDTO>> getMovieSimilarListByMovieId(   
 			@PathVariable(name = "movieId") String movieId) {
-		var similarMovies = movieService.getMovieSimilarListByMovieId(movieId);
-		return  new ResponseEntity<List<MovieDTO>>(similarMovies.isPresent() ? similarMovies.get() : null, HttpStatus.OK);
+		var movieDTOs = movieService.getMovieSimilarListByMovieId(movieId);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
 	}
 	
 	@Operation(summary = "영화 장르 목록 조회", description = "영화 장르 목록을 조회합니다.")
@@ -109,7 +112,7 @@ public class MovieController {
 	public ResponseEntity<List<GenreDTO>> getGenreList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var genres = movieService.getMovieGenres(type);
-		return  new ResponseEntity<List<GenreDTO>>(genres.isPresent() ? genres.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(genres.orElse(null));
 	}
 	
 	@Operation(summary = "영화 관람 등급 목록 조회", description = "영화 관람 등급 목록을 조회합니다.")
@@ -118,7 +121,7 @@ public class MovieController {
 	public ResponseEntity<List<CertificationDTO>> getCertificationList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var certifications = movieService.getMovieCertifications(type);
-		return  new ResponseEntity<List<CertificationDTO>>(certifications.isPresent() ? certifications.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(certifications.orElse(null));
 	}
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "영화 제공업자 목록을 조회합니다.")
@@ -127,7 +130,7 @@ public class MovieController {
 	public ResponseEntity<List<ProviderDTO>> getProviderList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var providers = movieService.getProviders(type);
-		return new ResponseEntity<List<ProviderDTO>>(providers.isPresent() ? providers.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(providers.orElse(null));
 	}
 	
 	// TODO
@@ -139,7 +142,7 @@ public class MovieController {
 			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
 		// TODO
 		var rationDto =  movieService.addRatingByUserId(movieId, request);
-		return  new ResponseEntity<RatingDTO>(rationDto.isPresent()? rationDto.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(null));
 	}
 	
 	// TODO
@@ -161,7 +164,7 @@ public class MovieController {
     public ResponseEntity<List<MovieDTO>> getSearchList(
     		@RequestParam(name = "title") String title) {
     	var movieDTO =  movieService.getMovieListBySearch(title);
-		return  new ResponseEntity<List<MovieDTO>>(movieDTO.isPresent() ? movieDTO.get() : null , HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
     }
     
 	@Operation(summary = "영화 필터 검색", description = "다양한 필터 기준으로 영화를 검색합니다.")
@@ -178,12 +181,13 @@ public class MovieController {
 			@RequestParam(name="sortBy") SortType sortType,
 			@RequestParam(name="includeAdult") Boolean includeAdult
 			) {
+		System.out.println("getSearchListTypeFilter");
 		var filterRequest = FilterRequest.builder().includeAdult(includeAdult).pageNum(pageNum).sortType(sortType);
 		if(StringUtils.isNotBlank(withGenres))filterRequest.withGenres(withGenres); 
 		if(StringUtils.isNotBlank(withPeople))filterRequest.withPeople(withPeople); 
 		
-		var movieDtos = movieService.getMovieListByFilter(filterRequest.build());
-		return  new ResponseEntity<List<MovieDTO>>(movieDtos.isPresent()? movieDtos.get() : null, HttpStatus.OK);
+		var movieDtos = movieService.getMovieListByFilter(filterRequest.build());	
+		return ResponseEntity.status(HttpStatus.OK).body(movieDtos.orElse(null));
 	}
 
 }

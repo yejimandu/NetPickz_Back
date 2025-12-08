@@ -1,11 +1,16 @@
 package com.netpickz.core.auth.service;
 
+import java.time.Duration;
+
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.netpickz.api.auth.request.AcessTokenRequest;
+import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.TokenStatusType;
+import com.netpickz.common.handler.CustomException;
 import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.auth.dto.TokenDTO;
@@ -17,6 +22,9 @@ import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.service.UserService;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,22 +32,22 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-	
+
 	private final JWTUtil jwtUtil;
 	private final UserTokensRepository userTokensRepository;
 	private final TokenIssuanceHistoryRepository tokenIssuanceHistoryRepository;
 	private final EntityManager entityManager;
 	private final PasswordEncoder encoder;
 	private final UserService userService;
-	
+
 	@Override
 	public TokenDTO userLogin(LoginRequest request) {
-		var username = request.getUserId();
+		var userId = request.getUserId();
 		var password = request.getPassword();
 		// 패스워드 검증
-		var user = userService.getUserInfoByUserId(username).get();
+		var user = userService.getUserInfoByUserId(userId).get();
 		var matches = encoder.matches(password, user.getPassword());
-		return matches ? createToken(username) : null;
+		return matches ? createToken(userId) : null;
 	}
 
 	@Transactional
@@ -48,105 +56,111 @@ public class AuthServiceImpl implements AuthService {
 		var access = jwtUtil.createJwt("access", username,  600000L); // 10분
 	    var refresh = jwtUtil.createJwt("refresh", username, 86400000L); // 24시간	
 	    
-	    var accessExpiresAt = jwtUtil.getExpiresAt(access);
+	    if(!"guest".equals(username)) {
+	    	createTokenByUserId(access, refresh);
+	    }
+
+	    var cookie = ResponseCookie
+	    		.from("refresh", refresh)
+	    		.httpOnly(true)
+	    		.secure(true)
+	    		.path("/")
+	            .sameSite("None") // CORS 환경에서 중요!
+//	            .sameSite("Strict")  
+	    		.maxAge(Duration.ofDays(7))
+	    		.build();
+	    
+		return TokenDTO.builder()
+				.accessToken(access)
+				.cookie(cookie)
+			    .build();
+	}
+
+	private void createTokenByUserId(String access, String refresh) {
+		
+		var userId = jwtUtil.getUsername(access);
+		var accessExpiresAt = jwtUtil.getExpiresAt(access);
 	    var issuedAt = jwtUtil.getIssuedAt(refresh);
 	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
 	    var accessHash = jwtUtil.hashToken(access);
 	    var refreshHash = jwtUtil.hashToken(refresh);
 	    
-	    
 	    // 1. UserEntity 영속 참조 가져오기
-	    var userToken = userTokensRepository.findById(username);
-	    var userTokenEntity = new UserTokensEntity();
-	    var user = entityManager.getReference(UserEntity.class, username);
-	    if(!userToken.isPresent()) {
-		    // TODO DB 저장
-			userTokenEntity = UserTokensEntity.builder()
-		    		.accessToken(accessHash)
-		    		.refreshToken(refreshHash)
-		    		.expiresAt(accessExpiresAt.toString())
-		    		.refreshExpireAt(refreshExpiresAt.toString())
-		    		.userEntity(user)
-		    		.build();
-	    }else {
-	    	  // ✅ 이미 존재 → 조회한 엔티티 수정
-	        userTokenEntity = userToken.get();
-	        userTokenEntity.setAccessToken(accessHash);
-	        userTokenEntity.setRefreshToken(refreshHash);
-	        userTokenEntity.setExpiresAt(accessExpiresAt.toString());
-	        userTokenEntity.setRefreshExpireAt(refreshExpiresAt.toString());
-	    }
+	    var user = entityManager.getReference(UserEntity.class, userId);
+	    var userToken = userTokensRepository.findById(userId);
+	    var userTokenEntity = userToken.orElseGet(() ->
+		    UserTokensEntity.builder()
+			.accessToken(accessHash)
+			.refreshToken(refreshHash)
+			.expiresAt(accessExpiresAt.toString())
+			.refreshExpireAt(refreshExpiresAt.toString())
+			.userEntity(user)
+			.build());
+
+    	  // ✅ 이미 존재 → 조회한 엔티티 수정
+        userTokenEntity.setAccessToken(accessHash);
+        userTokenEntity.setRefreshToken(refreshHash);
+        userTokenEntity.setExpiresAt(accessExpiresAt.toString());
+        userTokenEntity.setRefreshExpireAt(refreshExpiresAt.toString());
+	        
 	    userTokensRepository.save(userTokenEntity);
-	    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
-	    		.id(IdGenerator.getId("TN_"))
-	    		.userId(username)
-	    		.accessToken(accessHash)
-	    		.refreshToken(refreshHash)
-	    		.issuedAt(issuedAt.toString())
-	    		.expiresAt(refreshExpiresAt.toString())
-	    		.status(TokenStatusType.Active)
-	    		.build()
-	    		);
 	    
-		return TokenDTO.builder()
-				.accessToken(access)
-			    .refreshToken(refresh)
-			    .build();
+	    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
+    		.id(IdGenerator.getId("TN_"))
+    		.userId(userId)
+    		.accessToken(accessHash)
+    		.refreshToken(refreshHash)
+    		.issuedAt(issuedAt.toString())
+    		.expiresAt(refreshExpiresAt.toString())
+    		.status(TokenStatusType.Active)
+    		.build()
+		);
 	}
 
 	@Override
-	public Boolean verifyToken(AcessTokenRequest request) {
+	public Boolean verifyToken(AccessTokenRequest request) {
 		try {
-			var isExpired = jwtUtil.isExpired(request.getAccessToken());
-			// TODO 만료시 제거
-			return isExpired ? false : true;
+			return jwtUtil.isExpired(request.getAccessToken());
 		}catch (ExpiredJwtException e) {
-			/// TODO 
-			throw new RuntimeException("토큰이 만료되었습니다.", e);
-
+			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
+		}catch (MalformedJwtException e) {
+			throw new CustomException(ErrorCode.ACCESS_TOKEN_MALFORMED);
+		}catch (UnsupportedJwtException e) {
+			throw new CustomException(ErrorCode.ACCESS_TOKEN_UNSUPPORTED);
+		}catch (IllegalArgumentException  e) {
+			throw new CustomException(ErrorCode.TOKEN_MISSING);
+		}catch (JwtException  e) {
+			throw new CustomException(ErrorCode.ACCESS_TOKEN_INVALID);
 		}
 	}
 	
 	@Override
-	public TokenDTO reissue(String accessToken, String refrechToken) {
-//		if(refrechToken == null) return "refresh token null";
+	public TokenDTO reissueTokens(String refreshToken) {
 		
-		//expired check
+		if(refreshToken == null || refreshToken.isEmpty()) {
+			throw new CustomException(ErrorCode.REFRESH_TOKEN_NULL);
+		} 
+		
 		try {
-			jwtUtil.isExpired(refrechToken);
+			jwtUtil.isExpired(refreshToken);
 		}catch (ExpiredJwtException e) {
-//			return "refresh token expired";
+			throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+		}catch (MalformedJwtException e) {
+			throw new CustomException(ErrorCode.REFRESH_TOKEN_MALFORMED);
+		}catch (UnsupportedJwtException e) {
+			throw new CustomException(ErrorCode.REFRESH_TOKEN_UNSUPPORTED);
+		}catch (JwtException  e) {
+			throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
 		}
 		
 		// 카테고리 체크
-	    var category = jwtUtil.getCategory(refrechToken);
+	    var category = jwtUtil.getCategory(refreshToken);
         if (!category.equals("refresh")) {
-            //response status code
-//            return "invalid refresh token";
+        	throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 		
-        var username = jwtUtil.getUsername(refrechToken);
-        // 새로운 jwt 생성
-        var tokenDto =  createToken(username);
-        
-        // TODO DB에 갱신 리턴 타입 고민
-        return tokenDto;
+        var userId = jwtUtil.getUsername(refreshToken);
+        return createToken(userId);
 	}
 
-	@Override
-	public TokenDTO createGuestToken() {
-		var access = jwtUtil.createJwt("access", "guest",  600000L); // 10분
-	    var refresh = jwtUtil.createJwt("refresh", "guest", 3600000L); // 24시간	
-	    
-//	    var accessExpiresAt = jwtUtil.getExpiresAt(access);
-//	    var issuedAt = jwtUtil.getIssuedAt(refresh);
-//	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
-//	    var accessHash = jwtUtil.hashToken(access);
-//	    var refreshHash = jwtUtil.hashToken(refresh);
-
-		return TokenDTO.builder()
-				.accessToken(access)
-			    .refreshToken(refresh)
-			    .build();
-	}
 }
