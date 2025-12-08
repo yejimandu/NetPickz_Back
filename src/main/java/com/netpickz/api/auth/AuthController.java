@@ -1,7 +1,5 @@
 package com.netpickz.api.auth;
 
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -10,23 +8,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.netpickz.api.auth.request.AcessTokenRequest;
+import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.AuthRequest;
 import com.netpickz.api.auth.request.LoginRequest;
-import com.netpickz.api.movie.MovieController;
-import com.netpickz.common.config.AppConfig;
-import com.netpickz.common.dto.ApiResponse;
-import com.netpickz.common.enumType.ErrorCode;
-import com.netpickz.common.handler.CustomException;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-//@CrossOrigin(origins = "http://localhost:5173")
-
+@CrossOrigin(origins = "http://localhost:5173") // 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -35,22 +28,37 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	@Operation(summary = "swagger에서 사용자 로그인 (테스트 용) ", description = "사용자 로그인 처리합니다.")
+	@Operation(summary = "게스트 토큰 발급", description = "로그인전 통신을 위한 게스트용 토큰 발급합니다.")
 	@GetMapping("")
-	public ResponseEntity<TokenDTO> getGuestToken()  {
-		// TODO
-		System.out.println("getGuestToken");
-		var tokenDTO = authService.createGuestToken();
-		return ResponseEntity.status(HttpStatus.CREATED).body(tokenDTO);
+	public ResponseEntity<TokenDTO> getGuestToken(HttpServletResponse response)  {
+		var tokenDTO = authService.createToken("guest");
+		response.addHeader("Set-Cookie", tokenDTO.getCookie().toString()); // 
+		return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
 	}
 	
 	@Operation(summary = "swagger에서 사용자 로그인 (테스트 용) ", description = "사용자 로그인 처리합니다.")
 	@PostMapping("/swagger-login")
 	public ResponseEntity<TokenDTO> userLogin(
 			@org.springframework.web.bind.annotation.RequestBody LoginRequest request)  {
-		// TODO
-		var tokenDto = authService.userLogin(request);
-		return  new ResponseEntity<TokenDTO>(tokenDto, HttpStatus.OK);
+		var tokenDTO = authService.userLogin(request);
+		return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
+	}
+	
+	@Operation(summary = "토큰 검증", description = "토큰 기준으로 검증을 한다.")
+	@PostMapping("/verify")
+	public ResponseEntity<String> verifyToken(
+			@org.springframework.web.bind.annotation.RequestBody AccessTokenRequest request)  {
+		var isVerify = authService.verifyToken(request);
+		var msg = !isVerify ? "토큰이 유효합니다." : "토큰이 유효하지 않습니다. 재발급하십시오.";
+		return ResponseEntity.status(HttpStatus.OK).body(msg);
+	}
+	
+	@Operation(summary = "리프레쉬 토큰 기준으로 액세스 토큰 재발급", description = "리프레쉬 토큰 기준으로 액세스 토큰 재발급합니다. ")
+	@PostMapping("/refresh")
+	public ResponseEntity<TokenDTO> refrechToken(
+			@org.springframework.web.bind.annotation.RequestBody AuthRequest request)  {
+		var tokenDTO = authService.reissueTokens(request.getRefrechToken());
+		return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
 	}
 	
 	@Operation(summary = "swagger에서 사용자 로그아웃 (테스트 용) ", description = "사용자 로그아웃 처리합니다.")
@@ -59,26 +67,6 @@ public class AuthController {
 		// TODO
 //		var tokenDto = authService.userLogout(request);
 		return  new ResponseEntity<String>("", HttpStatus.OK);
-	}
-	
-	@Operation(summary = "토큰 검증 ", description = "토큰기준으로 검증을 한다.")
-	@PostMapping("/verify")
-	public ResponseEntity<Map> verifyToken(
-			@org.springframework.web.bind.annotation.RequestBody AcessTokenRequest request)  {
-		// TODO
-		var isValid = authService.verifyToken(request);
-		var dd = Map.of("isValid" , isValid, "msg" , isValid ? "토큰이 유효합니다." : "토큰이 유효하지 않습니다. 재발급하십시오.");
-		return  new ResponseEntity<Map>(dd, HttpStatus.OK);
-	}
-	
-	
-	@Operation(summary = "리프레쉬 토큰 기준으로 액세스 토큰 재발급", description = "리프레쉬 토큰 기준으로 액세스 토큰 재발급합니다. ")
-	@PostMapping("/refresh")
-	public ResponseEntity<String> refrechToken(
-			@org.springframework.web.bind.annotation.RequestBody AuthRequest request)  {
-		// TODO
-		authService.reissue(request.getAccessToken(), request.getRefrechToken());
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
 	}
 	
 }

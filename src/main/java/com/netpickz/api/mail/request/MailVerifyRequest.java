@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @Schema(description = "이메일 인증 요청 DTO")
 @Builder
-public class MailRequest {
+public class MailVerifyRequest {
 	@Schema(description = "인증 이메일", example = "hongGuk@naver.com")
     private String email;
+
+	@Schema(description = "인증 코드", example = "1254623")
+    private String code;
 }
