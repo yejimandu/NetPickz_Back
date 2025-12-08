@@ -1,6 +1,7 @@
 package com.netpickz.common.jwt;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,7 +11,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.util.CookieUtil;
 import com.netpickz.core.auth.service.AuthService;
 
@@ -19,6 +23,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jdk.jfr.ContentType;
 
 //@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter{
@@ -77,8 +82,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 		var username = authentication.getName();
 	    var tokens = authService.createToken(username);
 	    response.setHeader("access", tokens.getAccessToken());
-	    response.addCookie(CookieUtil.createCookie("refresh", tokens.getRefreshToken()));
+	    if(tokens.getCookie() != null) response.addHeader("Set-Cookie",  tokens.getCookie().toString());
+	    
+	    // ✅ JSON 응답 (Controller와 동일한 형식)
 	    response.setStatus(HttpStatus.OK.value());
+	    response.setContentType("application/json");
+	    response.setCharacterEncoding("UTF-8");
+	    
+	    var apiResponse = ApiResponse.builder()
+				.success(true)
+				.timeStamp(LocalDateTime.now())
+				.data(tokens)
+				.status(HttpStatus.OK.value())
+				.build();
+	    var mapper = new ObjectMapper();
+	    mapper.registerModule(new JavaTimeModule()); // 이거 추가!
+	    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); 
+	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
 	}
 
 	// TODO 로그인 실패 시 실행 되는 메소드
