@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Schema(description = "사용자 요청 DTO")
 @Builder
-public class AcessTokenRequest {
+public class AccessTokenRequest {
 
 	private String accessToken;
 

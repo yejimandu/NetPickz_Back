@@ -2,9 +2,10 @@ package com.netpickz.api.user;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.user.request.UserRequest;
-import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.StateType;
 import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.service.UserService;
@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
@@ -35,8 +36,11 @@ public class UserController {
 	@Operation(summary = "사용자 정보 조회", description = "사용자 ID 기준으로 사용자 정보를 조회합니다.")
 	@GetMapping("/{userId}")
 	public ResponseEntity<UserDTO> getUserInfo(
-			@PathVariable(name = "userId") String userId) {
-		// TODO
+			@PathVariable(name = "userId") String userId, Authentication authentication) {
+
+		if("me".equals(userId)) {
+			userId = authentication.getName();
+		}
 		var userDto = userService.getUserInfoByUserId(userId);
 		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null, HttpStatus.OK);
 	}

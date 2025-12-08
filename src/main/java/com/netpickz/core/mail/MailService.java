@@ -1,10 +1,9 @@
 package com.netpickz.core.mail;
 
-import com.netpickz.api.mail.request.MailRequest;
+import com.netpickz.api.mail.request.MailVerifyRequest;
 
 public interface MailService {
 
 	String sendCode(String email);
-	String verifyCode(MailRequest request);
-
+	String verifyCode(MailVerifyRequest request);
 }

@@ -1,5 +1,7 @@
 package com.netpickz.core.auth.dto;
 
+import org.springframework.http.ResponseCookie;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,5 +18,5 @@ import lombok.extern.slf4j.Slf4j;
 public class TokenDTO {
 	
 	private String accessToken;
-	private String refreshToken;
+	private ResponseCookie cookie;
 }
