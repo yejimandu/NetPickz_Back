@@ -3,6 +3,7 @@ package com.netpickz.common.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.jwt.CustomLogoutFilter;
 import com.netpickz.common.jwt.JWTFilter;
 import com.netpickz.common.jwt.JWTUtil;
@@ -17,8 +18,8 @@ public class FilterConfig {
 
 //	.addFilterBefore(new JWTFilter(jwtUtil, cookieUtil, authService), LoginFilter.class)
     @Bean
-    public JWTFilter jwtFilter(JWTUtil jwtUtil, AuthService authService) {
-        return new JWTFilter(jwtUtil, authService);
+    public JWTFilter jwtFilter(JWTUtil jwtUtil, AuthService authService, ObjectMapper mapper ) {
+        return new JWTFilter(jwtUtil, authService, mapper);
     }
     
 //    .addFilterAt(new CustomLogoutFilter(jwtUtil, userTokensRepository), LogoutFilter.class)
