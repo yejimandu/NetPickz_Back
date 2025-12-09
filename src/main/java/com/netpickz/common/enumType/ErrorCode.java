@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
 
+	AUTH_ACCESS_DENIED("AUTH_001", "접근 권한이 제한되었습니다..", HttpStatus.FORBIDDEN),
+
 	TOKEN_MISSING("TOKEN_001", "토큰이 제공되지 않았습니다.", HttpStatus.UNAUTHORIZED),
 	
 	// ACCESS_TOKEN
@@ -29,8 +31,22 @@ public enum ErrorCode {
 	
 	REDIS_CONNECT_FAIL("REDIS_001", "레디스 연결에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
 	
-//	TMDB_
+	JSON_WRITE_FAIL("JSON_001", "JSON 응답을 작성하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+	TMDB_NOT_FOUND("TMDB_404", "TMDB 요청 경로가 잘못되었습니다.", HttpStatus.NOT_FOUND),
+	TMDB_UNAUTHORIZED("TMDB_401", "TMDB 인증 키가 유효하지 않습니다.", HttpStatus.UNAUTHORIZED),
+	TMDB_SERVER_ERROR("TMDB_500", "TMDB 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	
+	
+	SERVER_ERROR("SERVER_500", "요청을 처리 중 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	
+	MOVIE_NOT_FOUND("MOVIE_404", "영화 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	
+	USER_NOT_FOUND("USER_404", "사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND), 
+	
+	SESSION_NOT_FOUND("SESSION_404", "세션 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND), 
+
+	DATABASE_ERROR("DB_500", "DB 서버 오류가 발생했습니다..", HttpStatus.INTERNAL_SERVER_ERROR), 
 	
 	;
 	
