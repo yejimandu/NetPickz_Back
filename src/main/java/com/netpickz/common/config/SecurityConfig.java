@@ -13,6 +13,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netpickz.common.handler.CustomAccessDeniedHandler;
+import com.netpickz.common.handler.JwtAuthenticationEntryPoint;
 import com.netpickz.common.jwt.CustomLogoutFilter;
 import com.netpickz.common.jwt.JWTFilter;
 import com.netpickz.common.jwt.JWTUtil;
@@ -28,8 +31,10 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
     private final CustomLogoutFilter customLogoutFilter;
-    private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper;
     private final AuthService authService;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
 	//AuthenticationManager Bean 등록
     @Bean
@@ -50,10 +55,9 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**", "/auth/login", "/swagger-ui/**", "/v3/api-docs/**", "/users").permitAll()
                 .requestMatchers("/movies/**", "/mail/**").permitAll()  // TODO 추후에 패스 조절 필요
                 .anyRequest().authenticated())
-//			.exceptionHandling(null)
-			.exceptionHandling
+			.exceptionHandling((e) -> e.accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(jwtAuthenticationEntryPoint))
 			.addFilterBefore(jwtFilter, LoginFilter.class)
-			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, authService), UsernamePasswordAuthenticationFilter.class)
+			.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), authService, objectMapper ), UsernamePasswordAuthenticationFilter.class)
 			.addFilterAt(customLogoutFilter, LogoutFilter.class)
 			// 세션 설정 - JWT를 통한 인증/인가를 위해서 세션을 STATELESS 상태로 설정하는 것이 중요
 			.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) 
