@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netpickz.common.dto.ApiResponse;
+import com.netpickz.common.enumType.ErrorCode;
+import com.netpickz.common.handler.CustomException;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.user.entity.UserInfoEntity;
@@ -32,18 +34,7 @@ public class JWTFilter extends OncePerRequestFilter{
 
 	private final JWTUtil jwtUtil;
 	private final AuthService authService;
-	
-	// ObjectMapper를 싱글톤으로 관리
-	private ObjectMapper mapper;
-	
-	private ObjectMapper getObjectMapper() {
-		if(mapper == null) {
-			mapper = new ObjectMapper();
-		    mapper.registerModule(new JavaTimeModule()); // 이거 추가!
-		    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); 
-		}
-	    return mapper;
-	}
+	private final ObjectMapper mapper;
 	
 	// 필터 제외할 경로들
     private static final List<String> EXCLUDE_URLS = List.of(
@@ -93,7 +84,7 @@ public class JWTFilter extends OncePerRequestFilter{
 			jwtUtil.isExpired(accessToken);
 		}catch (ExpiredJwtException e) {
 			 System.out.println("Access 토큰 만료, 재발급 시도");
-			 handleTokenReissue(refresh , response);
+			 handleTokenReissue(refresh , response); //
 		}
 		
 		// 토큰이 access 인지 체크
@@ -153,7 +144,7 @@ public class JWTFilter extends OncePerRequestFilter{
 				.status(HttpStatus.OK.value())
 				.build();
 	   
-	    response.getWriter().write(getObjectMapper().writeValueAsString(apiResponse));
+	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
 	}
 
 //	private void sendErrorResponse(HttpServletResponse response, HttpStatus status, ErrorCode errorCode) throws JsonProcessingException, IOException {

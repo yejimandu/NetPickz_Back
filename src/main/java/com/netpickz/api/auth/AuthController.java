@@ -12,6 +12,7 @@ import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.AuthRequest;
 import com.netpickz.api.auth.request.LoginRequest;
 import com.netpickz.core.auth.dto.TokenDTO;
+import com.netpickz.core.auth.dto.VerifyDTO;
 import com.netpickz.core.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,11 +47,10 @@ public class AuthController {
 	
 	@Operation(summary = "토큰 검증", description = "토큰 기준으로 검증을 한다.")
 	@PostMapping("/verify")
-	public ResponseEntity<String> verifyToken(
+	public ResponseEntity<VerifyDTO> verifyToken(
 			@org.springframework.web.bind.annotation.RequestBody AccessTokenRequest request)  {
-		var isVerify = authService.verifyToken(request);
-		var msg = !isVerify ? "토큰이 유효합니다." : "토큰이 유효하지 않습니다. 재발급하십시오.";
-		return ResponseEntity.status(HttpStatus.OK).body(msg);
+		var verifyDTO = authService.verifyToken(request);
+		return ResponseEntity.status(HttpStatus.OK).body(verifyDTO);
 	}
 	
 	@Operation(summary = "리프레쉬 토큰 기준으로 액세스 토큰 재발급", description = "리프레쉬 토큰 기준으로 액세스 토큰 재발급합니다. ")
@@ -64,7 +64,7 @@ public class AuthController {
 	@Operation(summary = "swagger에서 사용자 로그아웃 (테스트 용) ", description = "사용자 로그아웃 처리합니다.")
 	@PostMapping("/swagger-logout")
 	public ResponseEntity<String> userLogout()  {
-		// TODO
+		// TODO 로그아웃 시 토큰 상태 값 변경 및 쿠키에서 삭제.
 //		var tokenDto = authService.userLogout(request);
 		return  new ResponseEntity<String>("", HttpStatus.OK);
 	}
