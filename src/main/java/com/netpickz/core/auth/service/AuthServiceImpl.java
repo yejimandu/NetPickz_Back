@@ -14,6 +14,7 @@ import com.netpickz.common.handler.CustomException;
 import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.auth.dto.TokenDTO;
+import com.netpickz.core.auth.dto.VerifyDTO;
 import com.netpickz.core.auth.entity.TokenIssuanceHistoryEntity;
 import com.netpickz.core.auth.entity.UserTokensEntity;
 import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
@@ -77,50 +78,54 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	private void createTokenByUserId(String access, String refresh) {
+		try {
+				var userId = jwtUtil.getUsername(access);
+				var accessExpiresAt = jwtUtil.getExpiresAt(access);
+			    var issuedAt = jwtUtil.getIssuedAt(refresh);
+			    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
+			    var accessHash = jwtUtil.hashToken(access);
+			    var refreshHash = jwtUtil.hashToken(refresh);
+			    
+			    // 1. UserEntity 영속 참조 가져오기
+			    var user = entityManager.getReference(UserEntity.class, userId);
+			    var userToken = userTokensRepository.findById(userId);
+			    var userTokenEntity = userToken.orElseGet(() ->
+				    UserTokensEntity.builder()
+					.accessToken(accessHash)
+					.refreshToken(refreshHash)
+					.expiresAt(accessExpiresAt.toString())
+					.refreshExpireAt(refreshExpiresAt.toString())
+					.userEntity(user)
+					.build());
 		
-		var userId = jwtUtil.getUsername(access);
-		var accessExpiresAt = jwtUtil.getExpiresAt(access);
-	    var issuedAt = jwtUtil.getIssuedAt(refresh);
-	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
-	    var accessHash = jwtUtil.hashToken(access);
-	    var refreshHash = jwtUtil.hashToken(refresh);
-	    
-	    // 1. UserEntity 영속 참조 가져오기
-	    var user = entityManager.getReference(UserEntity.class, userId);
-	    var userToken = userTokensRepository.findById(userId);
-	    var userTokenEntity = userToken.orElseGet(() ->
-		    UserTokensEntity.builder()
-			.accessToken(accessHash)
-			.refreshToken(refreshHash)
-			.expiresAt(accessExpiresAt.toString())
-			.refreshExpireAt(refreshExpiresAt.toString())
-			.userEntity(user)
-			.build());
-
-    	  // ✅ 이미 존재 → 조회한 엔티티 수정
-        userTokenEntity.setAccessToken(accessHash);
-        userTokenEntity.setRefreshToken(refreshHash);
-        userTokenEntity.setExpiresAt(accessExpiresAt.toString());
-        userTokenEntity.setRefreshExpireAt(refreshExpiresAt.toString());
-	        
-	    userTokensRepository.save(userTokenEntity);
-	    
-	    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
-    		.id(IdGenerator.getId("TN_"))
-    		.userId(userId)
-    		.accessToken(accessHash)
-    		.refreshToken(refreshHash)
-    		.issuedAt(issuedAt.toString())
-    		.expiresAt(refreshExpiresAt.toString())
-    		.status(TokenStatusType.Active)
-    		.build()
-		);
+		    	  // ✅ 이미 존재 → 조회한 엔티티 수정
+		        userTokenEntity.setAccessToken(accessHash);
+		        userTokenEntity.setRefreshToken(refreshHash);
+		        userTokenEntity.setExpiresAt(accessExpiresAt.toString());
+		        userTokenEntity.setRefreshExpireAt(refreshExpiresAt.toString());
+			        
+			    userTokensRepository.save(userTokenEntity);
+			    
+			    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
+		    		.id(IdGenerator.getId("TN_"))
+		    		.userId(userId)
+		    		.accessToken(accessHash)
+		    		.refreshToken(refreshHash)
+		    		.issuedAt(issuedAt.toString())
+		    		.expiresAt(refreshExpiresAt.toString())
+		    		.status(TokenStatusType.Active)
+		    		.build()
+				);
+		} catch (Exception e) {
+			throw new CustomException(ErrorCode.SERVER_ERROR);
+		}
 	}
 
 	@Override
-	public Boolean verifyToken(AccessTokenRequest request) {
+	public VerifyDTO verifyToken(AccessTokenRequest request) {
 		try {
-			return jwtUtil.isExpired(request.getAccessToken());
+			var isVerify = jwtUtil.isExpired(request.getAccessToken());
+			return  new VerifyDTO(!isVerify);
 		}catch (ExpiredJwtException e) {
 			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
 		}catch (MalformedJwtException e) {

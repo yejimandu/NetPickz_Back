@@ -11,32 +11,27 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netpickz.api.auth.request.LoginRequest;
 import com.netpickz.common.dto.ApiResponse;
-import com.netpickz.common.util.CookieUtil;
 import com.netpickz.core.auth.service.AuthService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jdk.jfr.ContentType;
 
 //@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 
 //	private  AuthenticationManager authenticationManager;
-	private final JWTUtil jwtUtil;
 	private final AuthService authService;
-	
-	 public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, AuthService authService) {
+    private final ObjectMapper objectMapper;
+    
+	 public LoginFilter(AuthenticationManager authenticationManager, AuthService authService, ObjectMapper objectMapper) {
 		super.setAuthenticationManager(authenticationManager); // 부모에 세팅
         setFilterProcessesUrl("/auth/login"); // 경로 지정     
-        this.jwtUtil = jwtUtil;
         this.authService = authService;
+        this.objectMapper = objectMapper;
     }
 	 
 	@Override
@@ -95,10 +90,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 				.data(tokens)
 				.status(HttpStatus.OK.value())
 				.build();
-	    var mapper = new ObjectMapper();
-	    mapper.registerModule(new JavaTimeModule()); // 이거 추가!
-	    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); 
-	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
+	    
+	    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
 	}
 
 	// TODO 로그인 실패 시 실행 되는 메소드
