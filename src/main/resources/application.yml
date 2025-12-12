@@ -43,5 +43,8 @@ logging:
 #    path :  /swagger-ui.html
   #api-docs:
    # path: /home
-   
+
+tmdb:
+  api:
+    key : 849673b235e88d4045f4d45e77d2de7111
   
