@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
 		try {
 			return userRepositoryCustom.findByUserId(userId);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR);
+			throw new CustomException(ErrorCode.USER_NOT_FOUND);
 		}
 	}
 

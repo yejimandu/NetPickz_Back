@@ -34,19 +34,27 @@ public class TokenIssuanceHistoryEntity {
 	@Column(name = "user_id")
 	private String userId;
 	
-	@Column(name="access_token")
-	private String accessToken;
+	@Column(name="access_token_hash")
+	private String accessTokenHash;
 	
-	@Column(name="refresh_token")
-	private String refreshToken;
+	@Comment("액세스 토큰 발급일")
+	@Column(name="access_issued_at")
+	private String  accessIssuedAt; // long
+	
+	@Comment("액세스 토큰 만료일")
+	@Column(name="access_expires_at")
+	private String  accessExpiresAt; //long
+	
+	@Column(name="refresh_token_hash")
+	private String refreshTokenHash;
 	
 	@Comment("리프레쉬 토큰 발급일")
-	@Column(name="issued_at")
-	private String issuedAt; // long
+	@Column(name="refresh_issued_at")
+	private String refreshIssuedAt; // long
 	
 	@Comment("리프레쉬 토큰 만료일")
-	@Column(name="expires_at")
-	private String expiresAt; //long
+	@Column(name="refresh_expires_at")
+	private String refreshExpiresAt; //long
 	
 	@Comment("토큰 상태")
 	@Enumerated(EnumType.STRING)
