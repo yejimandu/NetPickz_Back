@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -18,7 +19,9 @@ import com.netpickz.api.movie.request.FilterRequest;
 public class TmdbClient  {
 
 	private final WebClient webClient;
-	private String apiKey =  "849673b235e88d4045f4d45e77d2de71";
+//	private String apiKey =  "849673b235e88d4045f4d45e77d2de71"; // TODO 추후 제거
+    @Value("${tmdb.api.key}")
+	private String apiKey;
 	
 	public TmdbClient(WebClient.Builder builder) {
 		this.webClient = builder.baseUrl("https://api.themoviedb.org/3")

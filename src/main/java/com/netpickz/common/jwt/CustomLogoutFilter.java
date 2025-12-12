@@ -1,14 +1,12 @@
 package com.netpickz.common.jwt;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.springframework.web.filter.GenericFilterBean;
 
-import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
-import com.netpickz.core.auth.repository.UserTokensRepository;
+import com.netpickz.api.auth.request.AccessTokenRequest;
+import com.netpickz.core.auth.service.AuthService;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -21,9 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean{
 
-	private final JWTUtil jwtUtil;
-	private final UserTokensRepository userTokensRepository;
-//	private final TokenIssuanceHistoryRepository tokenIssuanceHistoryRepository;
+	private final AuthService authService;
 	
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -34,65 +30,36 @@ public class CustomLogoutFilter extends GenericFilterBean{
 	private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws IOException, ServletException {
 	     //path and method verify 
-		
+		// TODO 테스트 필요
+		// 1. 패스 체크
 		var requestMethod  = request.getMethod();
 		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 		
-	    //get refresh token
-	    var cookies = request.getCookies();
-	    var refresh =  Arrays.stream(cookies)
-	            .filter(c -> "refresh".equals(c.getName()))
-	            .map(Cookie::getValue)
-	            .findFirst()
-	            .orElse(null); 
-        
-        //refresh null check
-        if(refresh == null) {
-        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        	return;
-        }
-        
-        //expired check
-        try {
-            jwtUtil.isExpired(refresh);
-        } catch (ExpiredJwtException e) {
-            //response status code
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-        
-        // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
-        var category = jwtUtil.getCategory(refresh);
-        if(!category.equals("refresh")) {
-        	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        	return;
-        }
+		// 2. 토큰 추출
+		var token = request.getHeader("Authorization");
+		// 토큰 널 여부 체크
+		if(token == null) {
+			 System.out.println("토큰 없음, 다음 필터로");
+			filterChain.doFilter(request, response);
+			return;
+		}
+		var tokens = token.split("Bearer ");
+		var accessToken = tokens[1];
+	
+		// 3. 로그아웃 처리
+		authService.userLogout(AccessTokenRequest.builder()
+								.accessToken(accessToken)
+								.build());
 
-        //DB에 저장되어 있는지 확인
-        var username = jwtUtil.getUsername(refresh);
-        var isExist = userTokensRepository.existsById(username); // service로 바꾸기
-        if(!isExist) {
-        	//response status code
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-        
-        // 로그 아웃 처리
-      //로그아웃 진행
-        //Refresh 토큰 DB에서 제거
-        userTokensRepository.deleteById(username);
-//        tokenIssuanceHistoryRepository.save(null);
-
-        //Refresh 토큰 Cookie 값 0
+        //4. cookie 값 초기화
         Cookie cookie = new Cookie("refresh", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
-
         response.addCookie(cookie);
-        response.setStatus(HttpServletResponse.SC_OK);
         
+        response.setStatus(HttpServletResponse.SC_OK);
 	}
 }
