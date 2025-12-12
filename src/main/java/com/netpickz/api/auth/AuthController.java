@@ -63,10 +63,11 @@ public class AuthController {
 	
 	@Operation(summary = "swagger에서 사용자 로그아웃 (테스트 용) ", description = "사용자 로그아웃 처리합니다.")
 	@PostMapping("/swagger-logout")
-	public ResponseEntity<String> userLogout()  {
+	public ResponseEntity<String> userLogout(
+			@org.springframework.web.bind.annotation.RequestBody AccessTokenRequest request)  {
 		// TODO 로그아웃 시 토큰 상태 값 변경 및 쿠키에서 삭제.
-//		var tokenDto = authService.userLogout(request);
-		return  new ResponseEntity<String>("", HttpStatus.OK);
+		var success = authService.userLogout(request);
+		return ResponseEntity.status(HttpStatus.OK).body(success);
 	}
 	
 }

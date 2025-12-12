@@ -16,17 +16,14 @@ import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.dto.VerifyDTO;
 import com.netpickz.core.auth.entity.TokenIssuanceHistoryEntity;
-import com.netpickz.core.auth.entity.UserTokensEntity;
 import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
-import com.netpickz.core.auth.repository.UserTokensRepository;
-import com.netpickz.core.user.entity.UserEntity;
+import com.netpickz.core.auth.repository.TokenRepositoryCustom;
 import com.netpickz.core.user.service.UserService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -35,9 +32,8 @@ import lombok.RequiredArgsConstructor;
 public class AuthServiceImpl implements AuthService {
 
 	private final JWTUtil jwtUtil;
-	private final UserTokensRepository userTokensRepository;
 	private final TokenIssuanceHistoryRepository tokenIssuanceHistoryRepository;
-	private final EntityManager entityManager;
+	private final TokenRepositoryCustom tokenRepositoryCustom;
 	private final PasswordEncoder encoder;
 	private final UserService userService;
 
@@ -46,7 +42,8 @@ public class AuthServiceImpl implements AuthService {
 		var userId = request.getUserId();
 		var password = request.getPassword();
 		// 패스워드 검증
-		var user = userService.getUserInfoByUserId(userId).get();
+		var user = userService.getUserInfoByUserId(userId)
+				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 		var matches = encoder.matches(password, user.getPassword());
 		return matches ? createToken(userId) : null;
 	}
@@ -80,44 +77,27 @@ public class AuthServiceImpl implements AuthService {
 	private void createTokenByUserId(String access, String refresh) {
 		try {
 				var userId = jwtUtil.getUsername(access);
+				var accessHash = jwtUtil.hashToken(access);
+				var accessIssuedAt = jwtUtil.getIssuedAt(access);
 				var accessExpiresAt = jwtUtil.getExpiresAt(access);
-			    var issuedAt = jwtUtil.getIssuedAt(refresh);
+				var refreshHash = jwtUtil.hashToken(refresh);
+			    var refreshIssuedAt = jwtUtil.getIssuedAt(refresh);
 			    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
-			    var accessHash = jwtUtil.hashToken(access);
-			    var refreshHash = jwtUtil.hashToken(refresh);
-			    
-			    // 1. UserEntity 영속 참조 가져오기
-			    var user = entityManager.getReference(UserEntity.class, userId);
-			    var userToken = userTokensRepository.findById(userId);
-			    var userTokenEntity = userToken.orElseGet(() ->
-				    UserTokensEntity.builder()
-					.accessToken(accessHash)
-					.refreshToken(refreshHash)
-					.expiresAt(accessExpiresAt.toString())
-					.refreshExpireAt(refreshExpiresAt.toString())
-					.userEntity(user)
-					.build());
-		
-		    	  // ✅ 이미 존재 → 조회한 엔티티 수정
-		        userTokenEntity.setAccessToken(accessHash);
-		        userTokenEntity.setRefreshToken(refreshHash);
-		        userTokenEntity.setExpiresAt(accessExpiresAt.toString());
-		        userTokenEntity.setRefreshExpireAt(refreshExpiresAt.toString());
-			        
-			    userTokensRepository.save(userTokenEntity);
+			 
 			    
 			    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
 		    		.id(IdGenerator.getId("TN_"))
 		    		.userId(userId)
-		    		.accessToken(accessHash)
-		    		.refreshToken(refreshHash)
-		    		.issuedAt(issuedAt.toString())
-		    		.expiresAt(refreshExpiresAt.toString())
+		    		.accessTokenHash(accessHash)
+		    		.accessExpiresAt(accessExpiresAt.toString())
+		    		.accessIssuedAt(accessIssuedAt.toString())
+		    		.refreshTokenHash(refreshHash)
+		    		.refreshIssuedAt(refreshIssuedAt.toString())
+		    		.refreshExpiresAt(refreshExpiresAt.toString())
 		    		.status(TokenStatusType.Active)
-		    		.build()
-				);
+		    		.build());
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR);
+			throw new CustomException(ErrorCode.DATABASE_ERROR);
 		}
 	}
 
@@ -166,6 +146,17 @@ public class AuthServiceImpl implements AuthService {
 		
         var userId = jwtUtil.getUsername(refreshToken);
         return createToken(userId);
+	}
+
+	@Override
+	public String userLogout(AccessTokenRequest request) {
+		var userId = jwtUtil.getUsername(request.getAccessToken());
+		try {
+			tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
+			return "success";
+		} catch (Exception e) {
+			throw new CustomException(ErrorCode.DATABASE_ERROR);
+		}
 	}
 
 }

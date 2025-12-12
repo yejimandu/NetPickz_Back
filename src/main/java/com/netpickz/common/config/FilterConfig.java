@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.jwt.CustomLogoutFilter;
 import com.netpickz.common.jwt.JWTFilter;
 import com.netpickz.common.jwt.JWTUtil;
-import com.netpickz.core.auth.repository.UserTokensRepository;
 import com.netpickz.core.auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,8 +23,8 @@ public class FilterConfig {
     
 //    .addFilterAt(new CustomLogoutFilter(jwtUtil, userTokensRepository), LogoutFilter.class)
     @Bean
-    public CustomLogoutFilter customLogoutFilter(JWTUtil jwtUtil, UserTokensRepository userTokensRepository) {
-        return new CustomLogoutFilter(jwtUtil, userTokensRepository);
+    public CustomLogoutFilter customLogoutFilter(AuthService authService) {
+        return new CustomLogoutFilter(authService);
     }
 
     
