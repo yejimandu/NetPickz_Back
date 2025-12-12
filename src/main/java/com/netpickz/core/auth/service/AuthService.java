@@ -10,4 +10,5 @@ public interface AuthService {
 	TokenDTO createToken(String username);
 	VerifyDTO verifyToken(AccessTokenRequest request);
 	TokenDTO reissueTokens(String refrechToken);
+	String userLogout(AccessTokenRequest request);
 }

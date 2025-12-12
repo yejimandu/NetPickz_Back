@@ -6,7 +6,6 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,10 +21,9 @@ import com.netpickz.common.dto.ApiResponse;
 // 4. 컨트롤러 쪽에서 dto만 반환하도록 처리.
 @RestControllerAdvice
 public class ResponseBodyAdvideHandler implements ResponseBodyAdvice<Object>{
-
+	
 	@Override
 	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-		System.out.println("supports");
 	   // OpenApiResource(Swagger) 제외
 		return !returnType.getDeclaringClass().getName().contains("OpenApiResource");
 	}
