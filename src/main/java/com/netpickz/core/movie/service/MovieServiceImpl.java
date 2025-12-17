@@ -5,9 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.common.dto.CertificationDTO;
@@ -20,7 +21,7 @@ import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.TimeType;
-import com.netpickz.common.handler.CustomException;
+import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.repository.CertificationRepository;
 import com.netpickz.common.repository.GenreRepository;
 import com.netpickz.common.repository.ProvidersRepository;
@@ -45,7 +46,9 @@ import com.netpickz.core.movie.repository.MovieRepositoryCustom;
 import com.netpickz.core.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
@@ -63,51 +66,61 @@ public class MovieServiceImpl implements MovieService {
 	
 	@Override
 	public Optional<MovieDTO> getMovieInfoByExternalId(String id) {
-		var movieDto = movieRepositoryCustom.findByExternalId(id);
-		if(movieDto.isPresent()) {
-			return movieDto;
-		} // TODO 
-		
-		var movieID = IdGenerator.getId("MV_");
-		var tmdbMovieResponse = tmdbClient.getMovieInfo(TmdbMovieRequest.builder().movieId(Integer.valueOf(id)).build()).getBody();
-		// TODO tmdb 없는것도 처리 필요
-		// 1. 부모 엔티티 저장
-		var movieEntity = MovieEntity.builder().id(String.valueOf(tmdbMovieResponse.getId())).movieId(movieID).title(tmdbMovieResponse.getTitle()).build();
-		var movie = movieRepository.saveAndFlush(movieEntity);
-		
-		// 2. 자식 엔티티 저장
-		var movieInfoEntity = MovieInfoEntity.builder().movieEntity(movie)
-				.overView(tmdbMovieResponse.getOverview())
-				.posterPath(tmdbMovieResponse.getPosterPath())
-				.releaseDate(tmdbMovieResponse.getReleaseDate()).build();
-		movieInfoRepository.saveAndFlush(movieInfoEntity);
-		
-		// 3. genres 엔티티 저장
-		var movieGenresEntity = tmdbMovieResponse.getGenres().stream().map((e) -> MovieGenreEntity.builder()
-				.id(MovieGenrePK.builder().genreId(String.valueOf(e.getId())).movieId(movieID).build())
-				.movieEntity(movieEntity)
-				.genreEntity(GenreEntity.builder().id(String.valueOf(e.getId())).build())
-				.build())
-				.collect(Collectors.toList());
-		
-		var genres = movieGenreRepository.saveAll(movieGenresEntity);
-		var genrsIds = genres.stream().map(e -> Integer.valueOf(e.getGenreEntity().getId())).toList();
-
-		var movieDTO = MovieDTO.builder()
-				.movieId(movieID)
-				.posterPath(movieInfoEntity.getPosterPath())
-				.releaseDate(movieInfoEntity.getReleaseDate())
-				.overview(movieInfoEntity.getOverView())
-				.genres(genrsIds)
-//				.runtime(tmdbMovieResponse.getRuntime())
-				.title(movie.getTitle())
-				.id(movie.getId()).build();
-		
-		return  Optional.of(movieDTO);
+		log.debug("Find MovieInfo By ExternalId. id={}", id);
+		try {
+			var movieDto = movieRepositoryCustom.findByExternalId(id);
+			if(movieDto.isPresent()) {
+				return movieDto;
+			}
+			
+			var movieID = IdGenerator.getId("MV_");
+			var tmdbMovieResponse = tmdbClient.getMovieInfo(TmdbMovieRequest.builder().movieId(Integer.valueOf(id)).build()).getBody();
+			// TODO tmdb 없는것도 처리 필요
+			// 1. 부모 엔티티 저장
+			var movieEntity = MovieEntity.builder().id(String.valueOf(tmdbMovieResponse.getId())).movieId(movieID).title(tmdbMovieResponse.getTitle()).build();
+			var movie = movieRepository.saveAndFlush(movieEntity);
+			
+			// 2. 자식 엔티티 저장
+			var movieInfoEntity = MovieInfoEntity.builder().movieEntity(movie)
+					.overView(tmdbMovieResponse.getOverview())
+					.posterPath(tmdbMovieResponse.getPosterPath())
+					.releaseDate(tmdbMovieResponse.getReleaseDate()).build();
+			movieInfoRepository.saveAndFlush(movieInfoEntity);
+			
+			// 3. genres 엔티티 저장
+			var movieGenresEntity = tmdbMovieResponse.getGenres().stream().map((e) -> MovieGenreEntity.builder()
+					.id(MovieGenrePK.builder().genreId(String.valueOf(e.getId())).movieId(movieID).build())
+					.movieEntity(movieEntity)
+					.genreEntity(GenreEntity.builder().id(String.valueOf(e.getId())).build())
+					.build())
+					.collect(Collectors.toList());
+			
+			var genres = movieGenreRepository.saveAll(movieGenresEntity);
+			var genrsIds = genres.stream().map(e -> Integer.valueOf(e.getGenreEntity().getId())).toList();
+	
+			var movieDTO = MovieDTO.builder()
+					.movieId(movieID)
+					.posterPath(movieInfoEntity.getPosterPath())
+					.releaseDate(movieInfoEntity.getReleaseDate())
+					.overview(movieInfoEntity.getOverView())
+					.genres(genrsIds)
+	//				.runtime(tmdbMovieResponse.getRuntime())
+					.title(movie.getTitle())
+					.id(movie.getId()).build();
+			
+			return  Optional.of(movieDTO);
+		}catch (WebClientResponseException e) {
+			throw new NetPickzException(ErrorCode.TMDB_SERVER_ERROR);
+		}catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		}catch (Exception e) {
+			throw new NetPickzException(ErrorCode.SERVER_ERROR);
+		}
 	}
 
 	@Override
 	public Optional<MovieDTO> getMovieInfoByMovieIdAndType(String movieId, AsyncType type) {
+		log.debug("Find MovieInfo. movieId={}, asynType={}", movieId, type);
 		try {
 			// TODO type true 인경우.
 			if(Boolean.valueOf(type.getValue())) {
@@ -123,15 +136,15 @@ public class MovieServiceImpl implements MovieService {
 			}
 			return  movieRepositoryCustom.findByMovieId(movieId);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
 		} catch (Exception e) {
-			System.out.println("Exception   : " + e);
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<GenreDTO>> getMovieGenres(AsyncType type) {
+		log.debug("Find MovieGenres. asynType={}", type);
 		try {
 			if(Boolean.valueOf(type.getValue())) {
 				var tmdbGenreResponse = tmdbClient.getGenreList().getBody();
@@ -141,36 +154,43 @@ public class MovieServiceImpl implements MovieService {
 				genreRepository.saveAll(genreEntity);
 			}
 			var genres = genreRepository.findAll().stream().map(e -> new GenreDTO(e.getId() , e.getName())).toList();
+			log.info("movieGenres Found.count={}",genres.size());
 			return Optional.of(genres);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<CertificationDTO>> getMovieCertifications(AsyncType type) {
+		log.debug("Find Certifications. asynType={}", type);
 		try {
 			if(Boolean.valueOf(type.getValue())) {
 				var tmdbCetificationResponse =  tmdbClient.getCertificationList().getBody();
 				var certificationEntitys = tmdbCetificationResponse.getCertifications().get("KR").stream().map(re -> CertificationEntity.builder().certification(re.getCertification()).meaning(re.getMeaning()).orderNum(re.getOrder()).build()).toList(); 
-				System.out.println(certificationEntitys);
 				certificationRepository.saveAll(certificationEntitys);
 			}
 			var certifications = certificationRepository.findAll();
 			var certificationDtos = certifications.stream().map(e -> new CertificationDTO(e.getCertification(), e.getMeaning(), e.getOrderNum())).toList();
+			log.info("movie Certifications. count={}", certificationDtos.size());
 			return Optional.of(certificationDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
-		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		}  catch (Exception e) {
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieListByType(MovieCategory category) {
+		log.debug("Find CategoryMovieList. category={}", category);
 		try {
 			var tmdbMoviesResponse = tmdbClient.getMovieList(TmdbMovieCategory.valueOf(category.getValue())).getBody();
 			var typeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
@@ -181,17 +201,19 @@ public class MovieServiceImpl implements MovieService {
 																.title(e.getTitle()).id(String.valueOf(e.getId()))
 																.build())
 																.toList();
+			log.info("MovieList By Category Found. count={}", typeMovieDtos.size());
 			return Optional.of(typeMovieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
 		} catch (Exception e) {
 			System.out.println("EXCEPTION : " + e);
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieListByTimeType(TimeType timeType) {
+		log.debug("Find ovieListByTimeType. TimeType={}", timeType);
 		try {
 			var tmdbMoviesResponse = tmdbClient.getMovieTrendList(timeType.getValue()).getBody();
 			var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
@@ -200,16 +222,18 @@ public class MovieServiceImpl implements MovieService {
 					.originalLanguage(e.getOriginalLanguage())
 					.title(e.getTitle()).id(String.valueOf(e.getId())).build())
 					.toList();
+			log.info("MovieList By TimeType Found. count={}", timeTypeMovieDtos.size());
 			return Optional.of(timeTypeMovieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<ProviderDTO>> getProviders(AsyncType type) {
+		log.debug("Find Providers. AsyncType={}", type);
 		try {
 			if(Boolean.valueOf(type.getValue())) {
 				var tmdbProviderResponse =  tmdbClient.getProviderList().getBody();
@@ -220,21 +244,24 @@ public class MovieServiceImpl implements MovieService {
 				providersRepository.saveAll(providerEntitys);
 			}
 			var providerDtos = providersRepository.findAll().stream().map(e -> new ProviderDTO(String.valueOf(e.getId()), e.getName(),e.getLogoPath(), e.getOrderNum())).toList();
+			log.info("ProviderList Found. count={}", providerDtos.size());
 			return Optional.of(providerDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		} catch (Exception e) {
-			System.out.println("Exception : " + e);
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 
 	@Override
 	public Optional<List<MovieDTO>> getProviderByMovieId(String movieId) {
+		log.debug("Find ProvidersByMovieId. movieId={}", movieId);
 		try {
 			var movie = movieRepository.findById(movieId)
-					.orElseThrow(() -> new CustomException(ErrorCode.MOVIE_NOT_FOUND)); 
+					.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND)); 
 			var tmdbProviderByMovieIdResponse = tmdbClient.getWatchProviderList(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
 			var movieProviderEntity = Optional.ofNullable(tmdbProviderByMovieIdResponse.getResults().get("KR"))
 					.map(TmdbProviderResponse::getFlatrate)
@@ -247,21 +274,25 @@ public class MovieServiceImpl implements MovieService {
 			var movieProviders =  movieProviderRepository.saveAll(movieProviderEntity); // DATABASE_ERROR
 			var movieDtos = movieProviders.stream().map(e -> new MovieDTO().builder().movieId(e.getMovieEntity().getId())
 					.providerId(e.getProvidersEntity().getId()).build()).toList();
+			log.info("ProviderMovieList Found. movieId={}, count={}", movieId, movieDtos.size());
 			return Optional.of(movieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		} catch (Exception e) {
-			System.out.println("Exception : " + e.getMessage());
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId) {
+		log.debug("Find MovieSimilarList. movieId={}", movieId);
 		// TODO 중복처리 및 기존에 있는 값이면 처리
 		try {
-			var movie = movieRepository.findById(movieId).get();
+			var movie = movieRepository.findById(movieId)
+						.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
 			var tmdbSimilarMoviesResponse = tmdbClient.getSimilarMovieListById(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
 			var similarMovieDtos = tmdbSimilarMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
 					.posterPath(e.getPosterPath())
@@ -270,79 +301,105 @@ public class MovieServiceImpl implements MovieService {
 					.releaseDate(e.getReleaseDate())
 					.title(e.getTitle())
 					.id(String.valueOf(e.getId())).build()).toList();
+			log.info("ProviderMovieList Found. movieId={}, count={}", movieId, similarMovieDtos.size());
 			return Optional.of(similarMovieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		} catch (Exception e) {
 			System.out.println("Exception : " + e.getMessage());
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieListBySearch(String title) {
+		log.debug("Find MovieList. title={}", title);
 		try {
 			var tmdbMoviesResponse = tmdbClient.getMovieListBySearch(title).getBody();
-			var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+			var movieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
 					.posterPath(e.getPosterPath()).overview(e.getOverview())
 					.releaseDate(e.getReleaseDate()).genres(e.getGenreIds())
 					.originalLanguage(e.getOriginalLanguage())
 					.title(e.getTitle()).id(String.valueOf(e.getId())).build())
 					.toList();
-			return Optional.of(timeTypeMovieDtos);
+			log.info("MovieList Found. title={}, count={}", title, movieDtos.size());
+			return Optional.of(movieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest) {
+		log.debug("Find MovieList By Filter. filter={}", filterRequest.toString());
 		try {
 			var tmdbMoviesResponse = tmdbClient.getMovieListByFilter(filterRequest).getBody();
-			var timeTypeMovieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
+			var movieDtos = tmdbMoviesResponse.getResults().stream().map(e -> new MovieDTO().builder()
 					.posterPath(e.getPosterPath()).overview(e.getOverview())
 					.releaseDate(e.getReleaseDate()).genres(e.getGenreIds())
 					.originalLanguage(e.getOriginalLanguage())
 					.title(e.getTitle()).id(String.valueOf(e.getId())).build())
 					.toList();
-			return Optional.of(timeTypeMovieDtos);
+			log.info("MovieList Found. count={}", movieDtos.size());
+			return Optional.of(movieDtos);
 		} catch (WebClientResponseException e) {
-			throw new CustomException(ErrorCode.TMDB_NOT_FOUND);
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.SERVER_ERROR); 
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
 	}
 
 	@Override
 	public Optional<RatingDTO> addRatingByUserId(String movieId, RatingRequest request) {
+		log.debug("Add Rating. movieId={}, rating={}, sessionId={}", movieId, request.getValue(), request.getSessionId());
 		//TODO ispresent 아닌것도 처리
-		var movie = movieRepository.findById(movieId).get();
-		var tmdbRatingResponse = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
-				.sessionId(request.getSessionId())
-				.rating(request.getValue())
-				.build());
-		var statusCode = tmdbRatingResponse.getBody().getStatusCode();
- 
-		Optional<RatingDTO> rationDTO = Optional.empty();
-		if(1 == statusCode || 12 == statusCode) {
-			rationDTO = userService.addRatingByUser(movieId, request);
+		try {
+			var movie = movieRepository.findById(movieId)
+					.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
+			var tmdbRatingResponse = tmdbClient.addRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
+					.sessionId(request.getSessionId())
+					.rating(request.getValue())
+					.build());
+			var statusCode = tmdbRatingResponse.getBody().getStatusCode();
+		
+			Optional<RatingDTO> rationDTO = Optional.empty();
+			if(1 == statusCode || 12 == statusCode) {
+				rationDTO = userService.addRatingByUser(movieId, request);
+			}
+			return rationDTO;
+		} catch (WebClientResponseException e) {
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		} catch (Exception e) {
+			throw new NetPickzException(ErrorCode.SERVER_ERROR); 
 		}
-		return rationDTO;
-
 	}
 
 	@Override
 	public void deleteRatingByUserId(String movieId, String sessionId) {
-		//TODO ispresent 아닌것도 처리
-		var movie = movieRepository.findById(movieId).get();
-		var tmdbRatingResponse = tmdbClient.deleteRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
-				.sessionId(sessionId)
-				.build());
-		// TODO DB 에서 삭제
-		var statusCode = tmdbRatingResponse.getBody().getStatusCode();
-		if(statusCode == 13 ) userService.deleteRatingByUser(movieId, sessionId);
+		log.debug("Delte Rating. movieId={}, sessionId={}", movieId, sessionId);
+		try {
+			//TODO ispresent 아닌것도 처리
+			var movie = movieRepository.findById(movieId)
+						.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
+			var tmdbRatingResponse = tmdbClient.deleteRating(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId()))
+					.sessionId(sessionId)
+					.build());
+			// TODO DB 에서 삭제
+			var statusCode = tmdbRatingResponse.getBody().getStatusCode();
+			if(statusCode == 13 ) userService.deleteRatingByUser(movieId, sessionId);
+		} catch (WebClientResponseException e) {
+			throw new NetPickzException(ErrorCode.TMDB_NOT_FOUND);
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		} catch (Exception e) {
+			throw new NetPickzException(ErrorCode.SERVER_ERROR);
+		}
 	}
 
 }

@@ -16,7 +16,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -26,13 +28,13 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authException) throws IOException, ServletException {
-		System.out.println(authException);
-		
+		log.debug("JwtAuthenticationEntryPoint 호출  uri={}, method={}, msg={}", request.getRequestURI(), request.getMethod(), authException.getMessage());
 		var errorCode = ErrorCode.ACCESS_TOKEN_INVALID;
 		setErrorResponse(errorCode, response);
 	}
 
 	private void setErrorResponse(ErrorCode errorCode, HttpServletResponse response) throws IOException {
+		log.debug("setErrorResponse Info errorCode={}", errorCode);
 	    response.setContentType("application/json");
 	    response.setCharacterEncoding("UTF-8");
 	    
@@ -46,7 +48,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		 try {
 	    	response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
 	    }catch(JsonProcessingException e) {
-	    	throw new CustomException(ErrorCode.JSON_WRITE_FAIL);
+	    	log.error("Fail to Json Write. apiResponse={}", apiResponse.toString());
+	    	throw new NetPickzException(ErrorCode.JSON_WRITE_FAIL);
 	    }
 	}
 

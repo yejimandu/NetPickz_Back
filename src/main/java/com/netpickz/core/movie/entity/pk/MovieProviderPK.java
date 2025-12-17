@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class MovieProviderPK implements Serializable{
 
+
+	private static final long serialVersionUID = 1L;
+
 	@Column(name = "movie_id")
 	private String movieId;
 	
