@@ -15,7 +15,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean{
 
@@ -31,6 +33,7 @@ public class CustomLogoutFilter extends GenericFilterBean{
 			throws IOException, ServletException {
 	     //path and method verify 
 		// TODO 테스트 필요
+		log.debug("CustomLogoutFilter 호출. path={}, method={}", request.getRequestURI(), request.getMethod());
 		// 1. 패스 체크
 		var requestMethod  = request.getMethod();
 		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
@@ -42,7 +45,7 @@ public class CustomLogoutFilter extends GenericFilterBean{
 		var token = request.getHeader("Authorization");
 		// 토큰 널 여부 체크
 		if(token == null) {
-			 System.out.println("토큰 없음, 다음 필터로");
+			log.debug("no Token. next Filter.");
 			filterChain.doFilter(request, response);
 			return;
 		}
