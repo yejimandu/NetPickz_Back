@@ -15,18 +15,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FilterConfig {
 
-//	.addFilterBefore(new JWTFilter(jwtUtil, cookieUtil, authService), LoginFilter.class)
     @Bean
     public JWTFilter jwtFilter(JWTUtil jwtUtil, AuthService authService, ObjectMapper mapper ) {
         return new JWTFilter(jwtUtil, authService, mapper);
     }
     
-//    .addFilterAt(new CustomLogoutFilter(jwtUtil, userTokensRepository), LogoutFilter.class)
     @Bean
     public CustomLogoutFilter customLogoutFilter(AuthService authService) {
         return new CustomLogoutFilter(authService);
     }
 
-    
-    
 }

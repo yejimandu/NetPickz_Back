@@ -19,15 +19,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
-//@RequiredArgsConstructor
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter{
 
-//	private  AuthenticationManager authenticationManager;
 	private final AuthService authService;
     private final ObjectMapper objectMapper;
     
-	 public LoginFilter(AuthenticationManager authenticationManager, AuthService authService, ObjectMapper objectMapper) {
+	public LoginFilter(AuthenticationManager authenticationManager, AuthService authService, ObjectMapper objectMapper) {
 		super.setAuthenticationManager(authenticationManager); // 부모에 세팅
         setFilterProcessesUrl("/auth/login"); // 경로 지정     
         this.authService = authService;

@@ -31,7 +31,7 @@ public class SessionController {
     public ResponseEntity<SessionDTO> createGuestSession(
             @RequestParam(name = "userId") String userId) {
         var sessionDto =  sessionService.createSession(userId, SessionType.Guest);
-        return  new ResponseEntity<SessionDTO>(sessionDto.isPresent()? sessionDto.get() : null, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(sessionDto.orElse(null));
 	}
 	
 	// 1. 간단 구현은 해둠 그치만 보완 필요

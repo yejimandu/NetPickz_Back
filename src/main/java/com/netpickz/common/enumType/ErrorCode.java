@@ -10,8 +10,10 @@ import lombok.Getter;
 public enum ErrorCode {
 
 	AUTH_ACCESS_DENIED("AUTH_001", "접근 권한이 제한되었습니다..", HttpStatus.FORBIDDEN),
+	AUTH_GUEST_NOT_ALLOWED("AUTH_002", "게스트 계정은 허용되지 않습니다.", HttpStatus.FORBIDDEN),
 
 	TOKEN_MISSING("TOKEN_001", "토큰이 제공되지 않았습니다.", HttpStatus.UNAUTHORIZED),
+	TOKEN_INVALID("TOKEN_002", "토큰이 유효하지않습니다.", HttpStatus.UNAUTHORIZED),
 	
 	// ACCESS_TOKEN
 	ACCESS_TOKEN_EXPIRED("TOKEN_101", "액세스 토큰이 만료되었습니다", HttpStatus.UNAUTHORIZED),
