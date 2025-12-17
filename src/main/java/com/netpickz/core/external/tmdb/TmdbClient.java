@@ -15,22 +15,22 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.netpickz.api.movie.request.FilterRequest;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class TmdbClient  {
 
 	private final WebClient webClient;
-//	private String apiKey =  "849673b235e88d4045f4d45e77d2de71"; // TODO 추후 제거
     @Value("${tmdb.api.key}")
 	private String apiKey;
 	
-	public TmdbClient(WebClient.Builder builder) {
-		this.webClient = builder.baseUrl("https://api.themoviedb.org/3")
-				.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
-				.build();
-	}
-	
 	// session	
 	public ResponseEntity<TmdbSessionResponse> createGuestSession() {
+		System.out.println("apiKey" + apiKey);
+		log.info("apiKey    =========== " + apiKey);
 		return webClient
 				.get()
 				.uri(uriBuilder -> uriBuilder

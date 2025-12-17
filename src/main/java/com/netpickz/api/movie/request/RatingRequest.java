@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "영화 평점 요청 DTO")
 @Builder
 public class RatingRequest {
-//    @Schema(description = "영화 ID", example = "mv_23312345")
-//    private String movieId;
-
     @Schema(description = "사용자 세션 ID", example = "abcde12345")
     private String sessionId;
 

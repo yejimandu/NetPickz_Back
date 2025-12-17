@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.mail.request.MailRequest;
 import com.netpickz.api.mail.request.MailVerifyRequest;
+import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.core.mail.MailService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,7 @@ public class MailController {
 	
 	@Operation(summary = "이메일 인증 코드", description = "이메일 인증 코드 발송합니다.")
 	@PostMapping("/send")
-	public ResponseEntity<String> sendEmail(
+	public ResponseEntity<CommonDTO> sendEmail(
 			@org.springframework.web.bind.annotation.RequestBody MailRequest request ) {
 		var msg = mailService.sendCode(request.getEmail());
 		return ResponseEntity.status(HttpStatus.OK).body(msg);
@@ -34,7 +35,7 @@ public class MailController {
 
 	@Operation(summary = "이메일 인증 코드 검증", description = "이메일 인증 코드 검증합니다.")
 	@PostMapping("/verify")
-	public ResponseEntity<String> verify(
+	public ResponseEntity<CommonDTO> verify(
 			@org.springframework.web.bind.annotation.RequestBody MailVerifyRequest request) {
 		var msg = mailService.verifyCode(request);
 		return ResponseEntity.status(HttpStatus.OK).body(msg);

@@ -3,11 +3,8 @@ package com.netpickz.core.user.entity;
 import java.sql.Timestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import com.netpickz.common.enumType.SessionType;
 import com.netpickz.common.enumType.StateType;
-import com.netpickz.core.session.entity.SessionEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
