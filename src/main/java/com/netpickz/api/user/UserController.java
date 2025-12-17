@@ -42,7 +42,7 @@ public class UserController {
 			userId = authentication.getName();
 		}
 		var userDto = userService.getUserInfoByUserId(userId);
-		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(userDto.orElse(null));
 	}
 	
 	@Operation(summary = "사용자 생성", description = "요청 정보 기준으로 사용자 정보를 생성합니다.")
@@ -50,7 +50,7 @@ public class UserController {
 	public ResponseEntity<UserDTO> createUser(
 			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
 		var userDto = userService.createUser(request);
-		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null , HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.CREATED).body(userDto.orElse(null));
 	}
 	
 	@Operation(summary = "사용자 정보 수정", description = "요청 정보 기준으로 사용자 정보를 수정합니다.")
@@ -59,7 +59,7 @@ public class UserController {
 			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
 		// TODO
 		var userDto = userService.updateUser(request);
-		return  new ResponseEntity<UserDTO>(userDto.isPresent()? userDto.get() : null , HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(userDto.orElse(null));
 	}
 	
 	@Operation(summary = "사용자 히스토리 정보 조회", description = "사용자 ID 기준으로 히스토리 내역을 조회합니다.")
@@ -68,7 +68,7 @@ public class UserController {
 			@PathVariable(name = "userId") String userId) {
 		// TODO
 		var userDto =  userService.getHistoryByUserId(userId);
-		return  new ResponseEntity<List<UserDTO>>(userDto.isPresent() ? userDto.get() : null, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body(userDto.orElse(null));
 	}
 	
 	@Operation(summary = "사용자 상태 변경", description = "사용자 ID 기준으로 사용자 상태를 변경합니다.")

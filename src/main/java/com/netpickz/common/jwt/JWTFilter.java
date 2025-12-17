@@ -12,11 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netpickz.common.dto.ApiResponse;
-import com.netpickz.common.enumType.ErrorCode;
-import com.netpickz.common.handler.CustomException;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.user.entity.UserInfoEntity;
@@ -28,7 +24,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter{
 
@@ -50,6 +48,7 @@ public class JWTFilter extends OncePerRequestFilter{
 	
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
+		log.info("path = {}", request.getRequestURI());
 		var path = request.getRequestURI();
 		var startsWithPath = STARTWITH_EXCLUDE_URLS.stream().anyMatch(path::startsWith);
 		var equalsPath = EXCLUDE_URLS.stream().anyMatch(path::equals);
@@ -67,7 +66,7 @@ public class JWTFilter extends OncePerRequestFilter{
 		var accessToken = tokenss[1];
 		// 토큰 널 여부 체크
 		if(accessToken == null) {
-			 System.out.println("토큰 없음, 다음 필터로");
+			log.debug("Token no, next filter. accessToken={}", accessToken);
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -84,6 +83,7 @@ public class JWTFilter extends OncePerRequestFilter{
 			jwtUtil.isExpired(accessToken);
 		}catch (ExpiredJwtException e) {
 			 System.out.println("Access 토큰 만료, 재발급 시도");
+			 log.debug("Expired Jwt. Reissue to Token. accessToken={}", accessToken);
 			 handleTokenReissue(refresh , response); //
 		}
 		
@@ -109,7 +109,7 @@ public class JWTFilter extends OncePerRequestFilter{
 			//세션에 사용자 등록
 			SecurityContextHolder.getContext().setAuthentication(authToken);
 		}
-		System.out.println("=== JWT Filter 통과 ===");
+		log.debug("======JWT Filter 통과 =====");
 		filterChain.doFilter(request, response);
 	}
 
@@ -131,7 +131,9 @@ public class JWTFilter extends OncePerRequestFilter{
 
 
 	private void sendSuccessResponse(HttpServletResponse response, TokenDTO tokens) throws JsonProcessingException, IOException {
-		response.setHeader("access", tokens.getAccessToken());
+		response.setHeader("Authorization", "Bearer " + tokens.getAccessToken());
+		
+//		response.setHeader("access", tokens.getAccessToken());
 		// ✅ JSON 응답 (Controller와 동일한 형식)
 	    response.setStatus(HttpStatus.OK.value());
 	    response.setContentType("application/json");
