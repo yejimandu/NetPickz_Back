@@ -2,6 +2,7 @@ package com.netpickz.core.auth.service;
 
 import java.time.Duration;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.LoginRequest;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.TokenStatusType;
-import com.netpickz.common.handler.CustomException;
+import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.auth.dto.TokenDTO;
@@ -26,7 +27,9 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -39,11 +42,12 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public TokenDTO userLogin(LoginRequest request) {
+		log.debug("Login User. userId={}", request.getUserId());
 		var userId = request.getUserId();
 		var password = request.getPassword();
 		// 패스워드 검증
 		var user = userService.getUserInfoByUserId(userId)
-				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
 		var matches = encoder.matches(password, user.getPassword());
 		return matches ? createToken(userId) : null;
 	}
@@ -51,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
 	@Transactional
 	@Override
 	public TokenDTO createToken(String username) {
+		log.debug("Create Token. userId={}", username);
 		var access = jwtUtil.createJwt("access", username,  600000L); // 10분
 	    var refresh = jwtUtil.createJwt("refresh", username, 86400000L); // 24시간	
 	    
@@ -67,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
 //	            .sameSite("Strict")  
 	    		.maxAge(Duration.ofDays(7))
 	    		.build();
-	    
+
 		return TokenDTO.builder()
 				.accessToken(access)
 				.cookie(cookie)
@@ -83,8 +88,8 @@ public class AuthServiceImpl implements AuthService {
 				var refreshHash = jwtUtil.hashToken(refresh);
 			    var refreshIssuedAt = jwtUtil.getIssuedAt(refresh);
 			    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
-			 
 			    
+			    tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
 			    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
 		    		.id(IdGenerator.getId("TN_"))
 		    		.userId(userId)
@@ -96,8 +101,13 @@ public class AuthServiceImpl implements AuthService {
 		    		.refreshExpiresAt(refreshExpiresAt.toString())
 		    		.status(TokenStatusType.Active)
 		    		.build());
+		} catch (DataAccessException e) {
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		} catch (JwtException e) {
+			throw new NetPickzException(ErrorCode.TOKEN_INVALID);
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.DATABASE_ERROR);
+			log.error("Fail to Save TokenIssuanceHistory. msg={}", e.getMessage(), e );
+			throw new NetPickzException(ErrorCode.SERVER_ERROR);
 		}
 	}
 
@@ -106,16 +116,14 @@ public class AuthServiceImpl implements AuthService {
 		try {
 			var isVerify = jwtUtil.isExpired(request.getAccessToken());
 			return  new VerifyDTO(!isVerify);
-		}catch (ExpiredJwtException e) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
 		}catch (MalformedJwtException e) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_MALFORMED);
+			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_MALFORMED);
 		}catch (UnsupportedJwtException e) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_UNSUPPORTED);
+			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_UNSUPPORTED);
 		}catch (IllegalArgumentException  e) {
-			throw new CustomException(ErrorCode.TOKEN_MISSING);
+			throw new NetPickzException(ErrorCode.TOKEN_MISSING);
 		}catch (JwtException  e) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_INVALID);
+			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_INVALID);
 		}
 	}
 	
@@ -123,25 +131,25 @@ public class AuthServiceImpl implements AuthService {
 	public TokenDTO reissueTokens(String refreshToken) {
 		
 		if(refreshToken == null || refreshToken.isEmpty()) {
-			throw new CustomException(ErrorCode.REFRESH_TOKEN_NULL);
+			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_NULL);
 		} 
 		
 		try {
 			jwtUtil.isExpired(refreshToken);
 		}catch (ExpiredJwtException e) {
-			throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_EXPIRED);
 		}catch (MalformedJwtException e) {
-			throw new CustomException(ErrorCode.REFRESH_TOKEN_MALFORMED);
+			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_MALFORMED);
 		}catch (UnsupportedJwtException e) {
-			throw new CustomException(ErrorCode.REFRESH_TOKEN_UNSUPPORTED);
+			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_UNSUPPORTED);
 		}catch (JwtException  e) {
-			throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_INVALID);
 		}
 		
 		// 카테고리 체크
 	    var category = jwtUtil.getCategory(refreshToken);
         if (!category.equals("refresh")) {
-        	throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
+        	throw new NetPickzException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 		
         var userId = jwtUtil.getUsername(refreshToken);
@@ -151,11 +159,15 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public String userLogout(AccessTokenRequest request) {
 		var userId = jwtUtil.getUsername(request.getAccessToken());
+		if("guest".equals(userId)) {
+			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
+		}
 		try {
 			tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
 			return "success";
 		} catch (Exception e) {
-			throw new CustomException(ErrorCode.DATABASE_ERROR);
+			log.error("Fail to User Logout. msg={}", e.getMessage(), e );
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		}
 	}
 

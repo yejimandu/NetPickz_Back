@@ -5,9 +5,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+import org.hibernate.JDBCException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.SessionType;
+import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.session.dto.SessionDTO;
@@ -16,7 +20,9 @@ import com.netpickz.core.session.repository.SessionRepository;
 import com.netpickz.core.user.entity.UserEntity;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionServiceimpl implements SessionService {
@@ -26,36 +32,53 @@ public class SessionServiceimpl implements SessionService {
 	
 	@Override
 	public Optional<SessionDTO> createSession(String userId, SessionType sessionType) {
-		var tmdbSessionResponse =   tmdbClient.createGuestSession().getBody();
-		
-        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-        var zdt = ZonedDateTime.parse(tmdbSessionResponse.getExpiresAt(), formatter);
-        var timestamp = Timestamp.from(zdt.toInstant());
-        var sessionId = "Guest".equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
-        var expiresAt =  "Guest".equals(sessionType.toString()) ? timestamp : null;
-		var sessionEntity = SessionEntity.builder()
-                .id(IdGenerator.getId("SS_"))
-				.sessionId(sessionId)
-				.expiresAt(expiresAt)
-                .type(sessionType)
-                .userEntity(UserEntity.builder().userId(userId).build())
-				.build();
-        
-        var session = sessionRepository.saveAndFlush(sessionEntity);
-        var sessionDto = SessionDTO.builder()
-                .sessionId(session.getSessionId())
-                .expireDate(String.valueOf(session.getExpiresAt()))
-                .sessionType(session.getType())
-                .userId(userId)
-                .build();
-        return Optional.of(sessionDto);
+		log.debug("Create Session. userId={}", userId);
+		try {
+			var tmdbSessionResponse =  tmdbClient.createGuestSession().getBody();
+			
+	        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+	        var zdt = ZonedDateTime.parse(tmdbSessionResponse.getExpiresAt(), formatter);
+	        var timestamp = Timestamp.from(zdt.toInstant());
+	        var sessionId = "Guest".equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
+	        var expiresAt =  "Guest".equals(sessionType.toString()) ? timestamp : null;
+			var sessionEntity = SessionEntity.builder()
+	                .id(IdGenerator.getId("SS_"))
+					.sessionId(sessionId)
+					.expiresAt(expiresAt)
+	                .type(sessionType)
+	                .userEntity(UserEntity.builder().userId(userId).build())
+					.build();
+	        
+	        var session = sessionRepository.saveAndFlush(sessionEntity);
+	        var sessionDto = SessionDTO.builder()
+	                .sessionId(session.getSessionId())
+	                .expireDate(String.valueOf(session.getExpiresAt()))
+	                .sessionType(session.getType())
+	                .userId(userId)
+	                .build();
+	        log.info("Save Session Info. sessionDto={}", sessionDto.toString());
+	        return Optional.of(sessionDto);
+		}catch (WebClientResponseException e) {
+			log.error("Fail to TMDB Connect. userId={}, msg={}", userId, e.getMessage(), e);
+			throw new NetPickzException(ErrorCode.TMDB_SERVER_ERROR);
+		}catch(JDBCException e) {
+			log.error("Fail to DB Connect. userId={}, msg={}",userId, e.getMessage(), e);
+			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
+		}catch(Exception e) {
+			throw new NetPickzException(ErrorCode.SERVER_ERROR);
+		}
 	}
 
     @Override
     public Optional<SessionDTO> getSessionInfo(String sessionId) {
-        // TODO get 아닌경우
-        var sessionEntity = sessionRepository.findBySessionId(sessionId).get();
-        var sessionDto = SessionDTO.builder().sessionId(sessionEntity.getSessionId()).userId(sessionEntity.getUserEntity().getUserId()).build();
+    	log.debug("Find Session Info. sessionId={}", sessionId);
+        var sessionEntity = sessionRepository.findBySessionId(sessionId)
+        		.orElseThrow(() -> new NetPickzException(ErrorCode.SESSION_NOT_FOUND));
+        var sessionDto = SessionDTO.builder()
+		    		.sessionId(sessionEntity.getSessionId())
+		    		.userId(sessionEntity.getUserEntity().getUserId())
+		    		.build();
+        log.info("Session Info Found. sessionId={}, userId={}", sessionDto.getSessionId(), sessionDto.getUserId());
         return Optional.of(sessionDto);
     }
 }
