@@ -15,7 +15,9 @@ import com.netpickz.common.enumType.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
@@ -25,16 +27,13 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response,
 			AccessDeniedException accessDeniedException) throws IOException {
-		System.out.println("CustomAccessDeniedHandler");
-		System.out.println(request);
-		System.out.println(response);
-		System.out.println(accessDeniedException);
-		
+		log.debug("CustomAccessDeniedHandler uri={}, method={}, msg={}", request.getRequestURI(), request.getMethod(), accessDeniedException.getMessage());
 		var errorCode = ErrorCode.AUTH_ACCESS_DENIED;
 		setErrorResponse(errorCode, response);
 	}
 
 	private void setErrorResponse(ErrorCode errorCode, HttpServletResponse response) throws IOException {
+		log.debug("setErrorResponse Info errorCode={}", errorCode);
 		response.setContentType("application/json");
 	    response.setCharacterEncoding("UTF-8");
 	    
@@ -49,7 +48,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 	    try {
 	    	response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
 	    }catch(JsonProcessingException e) {
-	    	throw new CustomException(ErrorCode.JSON_WRITE_FAIL);
+	    	log.error("Fail to Json Write. apiResponse={}", apiResponse.toString());
+	    	throw new NetPickzException(ErrorCode.JSON_WRITE_FAIL);
 	    }
 	}
 

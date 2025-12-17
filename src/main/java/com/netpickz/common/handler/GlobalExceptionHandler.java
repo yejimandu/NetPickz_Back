@@ -8,16 +8,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.netpickz.common.dto.ApiResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 // 1. 전역 예외 처리 핸들러 클래스 생성
 // 2. @ExceptionHandler할 메소드 작성 
 // 3. 반환 데이터 관련으로 errorCode enum 파일 생성
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(CustomException.class)
-	public ResponseEntity<ApiResponse<Object>> handlerException (CustomException  e) {
+	@ExceptionHandler(NetPickzException.class)
+	public ResponseEntity<ApiResponse<Object>> handlerException (NetPickzException  e) {
 		var errorCode = e.getErrorCode();
-        
+		log.error("NetPickzException 발생. errorCode={}, msg={}", errorCode, errorCode.getMsg(), e);
         return ResponseEntity
         		.status(errorCode.getStatus())
         		.body(

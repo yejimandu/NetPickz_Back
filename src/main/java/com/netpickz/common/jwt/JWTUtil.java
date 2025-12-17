@@ -64,7 +64,7 @@ public class JWTUtil {
 			var hashBytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
 			
 			// 바이트 배열을 HEX 문자열로 변환
-			String hex = HexFormat.of().formatHex(hashBytes);
+			var hex = HexFormat.of().formatHex(hashBytes);
 			System.out.println(hex);
 			return hex;
 		}catch (NoSuchAlgorithmException e) {

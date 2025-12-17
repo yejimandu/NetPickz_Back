@@ -2,9 +2,6 @@ package com.netpickz.core.movie.dto;
 
 import java.util.List;
 
-import com.netpickz.common.dto.GenreDTO;
-import com.netpickz.core.external.tmdb.TmdbGenreResponse;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
