@@ -2,7 +2,6 @@ package com.netpickz.core.auth.service;
 
 import java.time.Duration;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -101,13 +100,8 @@ public class AuthServiceImpl implements AuthService {
 		    		.refreshExpiresAt(refreshExpiresAt.toString())
 		    		.status(TokenStatusType.Active)
 		    		.build());
-		} catch (DataAccessException e) {
-			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
 		} catch (JwtException e) {
 			throw new NetPickzException(ErrorCode.TOKEN_INVALID);
-		} catch (Exception e) {
-			log.error("Fail to Save TokenIssuanceHistory. msg={}", e.getMessage(), e );
-			throw new NetPickzException(ErrorCode.SERVER_ERROR);
 		}
 	}
 
@@ -162,13 +156,8 @@ public class AuthServiceImpl implements AuthService {
 		if("guest".equals(userId)) {
 			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
 		}
-		try {
-			tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
-			return "success";
-		} catch (Exception e) {
-			log.error("Fail to User Logout. msg={}", e.getMessage(), e );
-			throw new NetPickzException(ErrorCode.DATABASE_ERROR);
-		}
+		tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
+		return "success";
 	}
 
 }
