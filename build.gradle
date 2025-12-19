@@ -58,6 +58,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail:3.5.3'
 	
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// https://mvnrepository.com/artifact/de.huxhorn.sulky/de.huxhorn.sulky.ulid
+implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0'
 }
 
 tasks.named('test') {
