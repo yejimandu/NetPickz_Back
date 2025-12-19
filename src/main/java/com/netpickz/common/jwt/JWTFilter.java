@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.dto.ApiResponse;
+import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.user.entity.UserInfoEntity;
@@ -62,29 +64,39 @@ public class JWTFilter extends OncePerRequestFilter{
 			throws ServletException, IOException {
 		
 		var token = request.getHeader("Authorization");
-		var tokenss = token.split("Bearer ");
-		var accessToken = tokenss[1];
-		// 토큰 널 여부 체크
-		if(accessToken == null) {
-			log.debug("Token no, next filter. accessToken={}", accessToken);
+		if(token == null) {
+			log.debug("Token no, next filter. token={}", token);
 			filterChain.doFilter(request, response);
+			return;
+		}
+		var tokens = token.split("Bearer ");
+		var accessToken = tokens[1];
+		if(accessToken == null) {
+			log.debug("accessToken no, next filter. token={}", token);
+			filterChain.doFilter(request, response);
+			sendErrorResponse(response, ErrorCode.TOKEN_MISSING);
 			return;
 		}
 		
 	    var cookies = request.getCookies();
-	    var refresh =  Arrays.stream(cookies)
-	            .filter(c -> "refresh".equals(c.getName()))
-   	            .map(Cookie::getValue)
-	            .findFirst()
-	            .orElse(null); 
+	    var refresh = new String();
+	    if(cookies != null) {
+		     refresh =  Arrays.stream(cookies)
+		            .filter(c -> "refresh".equals(c.getName()))
+	   	            .map(Cookie::getValue)
+		            .findFirst()
+		            .orElse(null); 
+	    }
 	
 		// 토큰 만료 여부 확인
 		try {
 			jwtUtil.isExpired(accessToken);
 		}catch (ExpiredJwtException e) {
 			 System.out.println("Access 토큰 만료, 재발급 시도");
+			 
 			 log.debug("Expired Jwt. Reissue to Token. accessToken={}", accessToken);
 			 handleTokenReissue(refresh , response); //
+//			 return;
 		}
 		
 		// 토큰이 access 인지 체크
@@ -119,6 +131,7 @@ public class JWTFilter extends OncePerRequestFilter{
 			var tokens = authService.reissueTokens(refresh);
 			// 성공 응답
 			sendSuccessResponse(response, tokens);
+//			return;
 		}catch (ExpiredJwtException  f) {
 			// response body 
 			var writer = response.getWriter();
@@ -129,15 +142,17 @@ public class JWTFilter extends OncePerRequestFilter{
 		}
 	}
 
-
 	private void sendSuccessResponse(HttpServletResponse response, TokenDTO tokens) throws JsonProcessingException, IOException {
 		response.setHeader("Authorization", "Bearer " + tokens.getAccessToken());
+//		response.setHeader("Authorization", tokens.getAccessToken());
+		
 		
 //		response.setHeader("access", tokens.getAccessToken());
 		// ✅ JSON 응답 (Controller와 동일한 형식)
 	    response.setStatus(HttpStatus.OK.value());
 	    response.setContentType("application/json");
 	    response.setCharacterEncoding("UTF-8");
+	    response.addHeader("Set-Cookie", tokens.getCookie().toString());
 	    
 	    var apiResponse = ApiResponse.builder()
 				.success(true)
@@ -145,25 +160,24 @@ public class JWTFilter extends OncePerRequestFilter{
 				.data(tokens)
 				.status(HttpStatus.OK.value())
 				.build();
-	   
+	   log.info("JWTFilter sendSuccessResponse apiResponse:{} " , apiResponse.toString());
 	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
 	}
 
-//	private void sendErrorResponse(HttpServletResponse response, HttpStatus status, ErrorCode errorCode) throws JsonProcessingException, IOException {
-//		// ✅ JSON 응답 (Controller와 동일한 형식)
-//	    response.setStatus(status.value());
-//	    response.setContentType("application/json");
-//	    response.setCharacterEncoding("UTF-8");
-//	    
-//	    var apiResponse = ApiResponse.builder()
-//				.success(false)
-//				.timeStamp(LocalDateTime.now())
-//				.code(errorCode.getCode())
-//				.message(errorCode.getMsg())
-//				.status(status.value())
-//				.build();
-//	   
-//	    response.getWriter().write(getObjectMapper().writeValueAsString(apiResponse));
-//	}
-//	
+	private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws JsonProcessingException, IOException {
+	    response.setStatus(errorCode.getStatus().value());
+	    response.setContentType("application/json");
+	    response.setCharacterEncoding("UTF-8");
+//		log.error("NetPickzException 발생. errorCode={}, msg={}", errorCode, errorCode.getMsg(), e);
+		var apiResponse = ApiResponse.builder()
+ 				.success(false)
+ 				.message(errorCode.getMsg())
+ 				.code(errorCode.getCode())
+ 				.timeStamp(LocalDateTime.now())
+ 				.status(errorCode.getStatus().value())
+ 				.build();
+//		log.info("GlobalExceptionHandler handlerException apiResponse : " + apiResponse.toString() );
+	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
+	}
+	
 }

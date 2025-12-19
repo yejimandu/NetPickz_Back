@@ -35,10 +35,15 @@ public enum ErrorCode {
 	
 	JSON_WRITE_FAIL("JSON_001", "JSON 응답을 작성하지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
-	TMDB_NOT_FOUND("TMDB_404", "TMDB 요청 경로가 잘못되었습니다.", HttpStatus.NOT_FOUND),
-	TMDB_UNAUTHORIZED("TMDB_401", "TMDB 인증 키가 유효하지 않습니다.", HttpStatus.UNAUTHORIZED),
-	TMDB_SERVER_ERROR("TMDB_500", "TMDB 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-	
+	TMDB_BAD_REQUEST("TMDB_400", "잘못된 요청입니다. 입력값을 확인해주세요.", HttpStatus.BAD_REQUEST),
+	TMDB_UNAUTHORIZED("TMDB_401", "TMDB 인증에 실패했습니다. API 키를 확인해주세요.", HttpStatus.UNAUTHORIZED),
+	TMDB_FORBIDDEN("TMDB_403", "TMDB 접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
+	TMDB_NOT_FOUND("TMDB_404", "요청한 TMDB 리소스를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+	TMDB_TOO_MANY_REQUESTS("TMDB_429", "TMDB 요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS),
+	TMDB_SERVER_ERROR("TMDB_500", "TMDB 서버 내부 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	TMDB_BAD_GATEWAY("TMDB_502", "TMDB 게이트웨이 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
+	TMDB_SERVICE_UNAVAILABLE("TMDB_503", "TMDB 서비스가 현재 이용 불가 상태입니다. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE),
+	TMDB_GATEWAY_TIMEOUT("TMDB_504", "TMDB 서버 응답 시간이 초과되었습니다.", HttpStatus.GATEWAY_TIMEOUT),
 	
 	SERVER_ERROR("SERVER_500", "요청을 처리 중 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	
@@ -49,6 +54,9 @@ public enum ErrorCode {
 	SESSION_NOT_FOUND("SESSION_404", "세션 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND), 
 
 	DATABASE_ERROR("DB_500", "DB 서버 오류가 발생했습니다..", HttpStatus.INTERNAL_SERVER_ERROR), 
+	DATABASE_DUPLICATE_KEY("DB_501", "DB PK/Unique 제약 조건 위반되었습니다.", HttpStatus.INTERNAL_SERVER_ERROR), 
+	DATABASE_DATA_INTERGRITY_VIOLATION("DB_502", "DB FK 제약 조건, NOT NULL 위반 등 데이터 무결성 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR), 
+	
 	
 	;
 	
