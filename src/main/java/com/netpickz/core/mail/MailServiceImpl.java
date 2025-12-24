@@ -32,7 +32,6 @@ public class MailServiceImpl implements MailService {
 		if(email == null || email.isBlank()) {
 			throw new NetPickzException(ErrorCode.MAIL_INVALID);
 		}
-		var flag = false;
 		var code = String.format("%06d", new Random().nextInt(999999));
 		
 		var sMailMessage  = new SimpleMailMessage();
@@ -51,22 +50,23 @@ public class MailServiceImpl implements MailService {
 		
 		try {
 			redisTemplate.opsForValue().set(email, code, 5 , TimeUnit.MINUTES );
-			flag = true;
 		}catch (RedisException e) {
 			log.error("Fail to Connect Redis. email={}, code={}, msg={}", email, code , e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
 		}
-		var message = flag ? "인증번호가 발송 되었습니다." : "전송 실패";
-		return CommonDTO.builder().status(flag).message(message).build();
+		return CommonDTO.builder().status(true).message("인증번호가 발송 되었습니다.").build();
 	}
 
 	@Override
 	public CommonDTO verifyCode(MailVerifyRequest request) {
 		var code = request.getCode();
 		try {
+			// 1. 인증코드 불일치
 			var value = redisTemplate.opsForValue().get(request.getEmail());
-			var message = code.equals(value) ? "인증 성공" : "인증 실패";
-			return CommonDTO.builder().status(code.equals(value)).message(message).build();
+			if(value.equals(code)) {
+				throw new NetPickzException(ErrorCode.MAIL_VERIFY_FAIL);
+			}
+			return CommonDTO.builder().status(code.equals(value)).message("인증 성공").build();
 		}catch (RedisException e) {
 			log.error("Fail to Connect Redis. email={}, code={}, msg={}", request.getEmail(), code, e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
