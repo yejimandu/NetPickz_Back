@@ -19,6 +19,7 @@ import com.netpickz.core.user.entity.UserEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
 import com.netpickz.core.user.entity.UserRatingInfoEntity;
 import com.netpickz.core.user.entity.pk.UserRatingInfoPK;
+import com.netpickz.core.user.mapper.UserMapper;
 import com.netpickz.core.user.repository.UserInfoRepository;
 import com.netpickz.core.user.repository.UserRatingInfoRepository;
 import com.netpickz.core.user.repository.UserRepository;
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+	private final UserMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
 	private final UserRatingInfoRepository userRatingInfoRepository;
 	private final UserInfoRepository userInfoRepository;
@@ -41,28 +43,28 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Optional<RatingDTO> addRatingByUser(String movieId, RatingRequest request) {
-		//TODO get 아닌 경우 처리 필요
+		var rating = request.getValue();
 		log.debug("Adding rating: movieId={}, sessionId={}, rating={}" , movieId , request.getSessionId(), request.getValue());
 		var sessionDto = sessionService.getSessionInfo(request.getSessionId())
 				.orElseThrow(() -> new NetPickzException(ErrorCode.SESSION_NOT_FOUND));
+		
 		userRatingInfoRepository.save(UserRatingInfoEntity.builder()
 				.id(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build())
-				.rating(request.getValue().floatValue())
+				.rating(rating.floatValue())
 				.guestSessionId(request.getSessionId())
 				.movieEntity(MovieEntity.builder().movieId(movieId).build())
 				.userEntity(UserEntity.builder().userId(sessionDto.getUserId()).build())
 				.build()
 				);
 		
-		var ratingDTO = RatingDTO.builder()
+		log.info("Rating saved: movieId={}, userId={}, rating={}", movieId, sessionDto.getUserId(), rating);
+		// TODO 
+		return Optional.of(RatingDTO.builder()
 				.movieId(movieId)
 				.userId(sessionDto.getUserId())
-				.rating(request.getValue())
-				.sessionId(request.getSessionId())
-				.build();
-		log.info("Rating saved: movieId={}, userId={}, rating={}", 
-	                 movieId, sessionDto.getUserId(), request.getValue());
-		return Optional.of(ratingDTO);
+				.rating(rating)
+				.sessionId(sessionDto.getSessionId())
+				.build());
 	}
 
 	// TODO 아마 여기서 이메일 저장 안해서 확인해야해,
@@ -78,12 +80,7 @@ public class UserServiceImpl implements UserService {
 				.email(request.getEmail())
 				.emailVerified(false)
 				.build());
-		var userDto = UserDTO.builder()
-				.userId(users.getUserId())
-				.name(userInfo.getName())
-				.email(userInfo.getEmail())
-				.state(userInfo.getState().toString())
-				.build();
+		var userDto = userMapper.userToUserDTO(userInfo);
 		log.info("Creating saved: userId={}, name={}, email={}", userDto.getUserId(), userDto.getName(), userDto.getEmail());
 		return Optional.of(userDto);
 	}
@@ -97,7 +94,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Optional<UserDTO> updateUser(UserRequest request) {
 		log.debug("Update user info: userId={}" , request.getUserId());
-		var userInfo = UserInfoEntity.builder().userEntity(UserEntity.builder().userId(request.getUserId()).build())
+		var userInfo = UserInfoEntity.builder()
+				.userEntity(UserEntity.builder().userId(request.getUserId()).build())
 				.name(request.getName()).build();
 		userRepositoryCustom.upsert(userInfo);
 		return getUserInfoByUserId(request.getUserId());
@@ -118,8 +116,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Optional<List<UserDTO>> getHistoryByUserId(String userId) {
 		log.debug("Find User Rating History info: userId={}" , userId);
-		getUserInfoByUserId(userId).orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND)); // userID 있는지 체크 
+		getUserInfoByUserId(userId)
+			.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND)); // userID 있는지 체크 
 		var userRatingEntity = userRatingInfoRepository.findByIdUserId(userId);
+		// TODO
+		
 		var userDtos = userRatingEntity.stream().map(e -> UserDTO.builder()
 				.userId(e.getUserEntity().getUserId())
 				.movieId(e.getMovieEntity().getMovieId())

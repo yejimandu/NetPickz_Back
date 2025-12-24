@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.TokenStatusType;
 import com.netpickz.common.handler.NetPickzException;
@@ -41,17 +42,21 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public TokenDTO userLogin(LoginRequest request) {
-		log.debug("Login User. userId={}", request.getUserId());
+		log.warn("Login User. userId={}", request.getUserId());
 		var userId = request.getUserId();
 		var password = request.getPassword();
 		// 패스워드 검증
 		var user = userService.getUserInfoByUserId(userId)
 				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
 		var matches = encoder.matches(password, user.getPassword());
-		return matches ? createToken(userId) : null;
+		if(!matches) {
+			log.error("Fail to Login By Password. userId={}", userId);
+			throw new NetPickzException(ErrorCode.USER_PASSWORD_INVALID);
+		}
+		return createToken(userId);
 	}
 
-	@Transactional
+//	@Transactional
 	@Override
 	public TokenDTO createToken(String username) {
 		log.debug("Create Token. userId={}", username);
@@ -79,45 +84,35 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	private void createTokenByUserId(String access, String refresh) {
-		try {
-				var userId = jwtUtil.getUsername(access);
-				var accessHash = jwtUtil.hashToken(access);
-				var accessIssuedAt = jwtUtil.getIssuedAt(access);
-				var accessExpiresAt = jwtUtil.getExpiresAt(access);
-				var refreshHash = jwtUtil.hashToken(refresh);
-			    var refreshIssuedAt = jwtUtil.getIssuedAt(refresh);
-			    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
-			    
-			    tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
-			    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
-		    		.id(IdGenerator.getId("TN_"))
-		    		.userId(userId)
-		    		.accessTokenHash(accessHash)
-		    		.accessExpiresAt(accessExpiresAt.toString())
-		    		.accessIssuedAt(accessIssuedAt.toString())
-		    		.refreshTokenHash(refreshHash)
-		    		.refreshIssuedAt(refreshIssuedAt.toString())
-		    		.refreshExpiresAt(refreshExpiresAt.toString())
-		    		.status(TokenStatusType.Active)
-		    		.build());
-		} catch (JwtException e) {
-			throw new NetPickzException(ErrorCode.TOKEN_INVALID);
-		}
+		var userId = jwtUtil.getUsername(access);
+		var accessHash = jwtUtil.hashToken(access);
+		var accessIssuedAt = jwtUtil.getIssuedAt(access);
+		var accessExpiresAt = jwtUtil.getExpiresAt(access);
+		var refreshHash = jwtUtil.hashToken(refresh);
+	    var refreshIssuedAt = jwtUtil.getIssuedAt(refresh);
+	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
+	    
+	    tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
+	    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
+    		.id(IdGenerator.getId("TN_"))
+    		.userId(userId)
+    		.accessTokenHash(accessHash)
+    		.accessExpiresAt(accessExpiresAt.toString())
+    		.accessIssuedAt(accessIssuedAt.toString())
+    		.refreshTokenHash(refreshHash)
+    		.refreshIssuedAt(refreshIssuedAt.toString())
+    		.refreshExpiresAt(refreshExpiresAt.toString())
+    		.status(TokenStatusType.Active)
+    		.build());
 	}
 
 	@Override
 	public VerifyDTO verifyToken(AccessTokenRequest request) {
 		try {
 			var isVerify = jwtUtil.isExpired(request.getAccessToken());
-			return  new VerifyDTO(!isVerify);
-		}catch (MalformedJwtException e) {
-			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_MALFORMED);
-		}catch (UnsupportedJwtException e) {
-			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_UNSUPPORTED);
+			return new VerifyDTO(!isVerify);
 		}catch (IllegalArgumentException  e) {
 			throw new NetPickzException(ErrorCode.TOKEN_MISSING);
-		}catch (JwtException  e) {
-			throw new NetPickzException(ErrorCode.ACCESS_TOKEN_INVALID);
 		}
 	}
 	
@@ -128,17 +123,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_NULL);
 		} 
 		
-		try {
-			jwtUtil.isExpired(refreshToken);
-		}catch (ExpiredJwtException e) {
-			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_EXPIRED);
-		}catch (MalformedJwtException e) {
-			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_MALFORMED);
-		}catch (UnsupportedJwtException e) {
-			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_UNSUPPORTED);
-		}catch (JwtException  e) {
-			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_INVALID);
-		}
+		jwtUtil.isExpired(refreshToken);
 		
 		// 카테고리 체크
 	    var category = jwtUtil.getCategory(refreshToken);
@@ -147,17 +132,20 @@ public class AuthServiceImpl implements AuthService {
         }
 		
         var userId = jwtUtil.getUsername(refreshToken);
+        if(userId == null || userId.isBlank()){
+        	throw new NetPickzException(ErrorCode.REFRESH_TOKEN_INVALID);
+        }
         return createToken(userId);
 	}
 
 	@Override
-	public String userLogout(AccessTokenRequest request) {
+	public CommonDTO userLogout(AccessTokenRequest request) {
 		var userId = jwtUtil.getUsername(request.getAccessToken());
 		if("guest".equals(userId)) {
 			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
 		}
 		tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
-		return "success";
+		return CommonDTO.builder().status(true).message("로그아웃 성공").build();
 	}
 
 }
