@@ -18,6 +18,10 @@ import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.core.log.LogService;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +42,18 @@ public class GlobalExceptionHandler {
 	}
 	
 	// TODO JWTEXCEPTION 확인
+	@ExceptionHandler(JwtException.class)
+	public ResponseEntity<ApiResponse<Object>> handlerJwtException ( HttpServletRequest request, JwtException  e ) {
+		log.debug("JwtException 발생.  msg={}", e.getMessage(), e);
+		if(e instanceof ExpiredJwtException) {
+			return buildResponse(request, ErrorCode.TOKEN_EXPIRED, e);
+		} else if(e instanceof MalformedJwtException) {
+			return buildResponse(request, ErrorCode.TOKEN_MALFORMED, e);
+		} else if(e instanceof UnsupportedJwtException) {
+			return buildResponse(request, ErrorCode.TOKEN_UNSUPPORTED, e);
+		}
+		return buildResponse(request, ErrorCode.TOKEN_INVALID, e);
+	}
 	
 	// TODO SERVER_ERROR 이거 에러도 처리
 	@ExceptionHandler(DataAccessException.class)
@@ -82,8 +98,6 @@ public class GlobalExceptionHandler {
 	}
 
 	private ResponseEntity<ApiResponse<Object>> buildResponse ( HttpServletRequest request, ErrorCode errorCode, Exception e) {
-		
-//		log.error("NetPickzException 발생. errorCode={}, msg={}", errorCode, errorCode.getMsg(), e);
 		var apiResponse = ResponseEntity
         		.status(errorCode.getStatus())
         		.body(
@@ -95,21 +109,21 @@ public class GlobalExceptionHandler {
 		 				.status(errorCode.getStatus().value())
 		 				.build()
         		);
-		
 		log.info("GlobalExceptionHandler handlerException apiResponse : " + apiResponse.toString() );
-
-		var userId = jwtUtil.getUsername(request.getHeader("Authorization").substring(7));
-		logService.save(LogDTO.builder()
-				.serviceName(request.getClass().getName()) 
-				.path(request.getRequestURI()) 
-				.method(request.getMethod().toString()) 
-				.ipAddress(request.getRemoteAddr()) 
-				.stackTrace(ExceptionUtils.getStackTrace(e))
-				.userAgent(request.getHeader("User-Agent"))
-				.statusCode(errorCode.getStatus().value())
-				.message(errorCode.getMsg())
-				.userId(userId)
-				.build());
+		if(!request.getRequestURI().contains("logout") || !request.getRequestURI().contains("login")) { 
+			var userId = jwtUtil.getUsername(request.getHeader("Authorization").substring(7));
+			logService.save(LogDTO.builder()
+					.serviceName(request.getClass().getName()) 
+					.path(request.getRequestURI()) 
+					.method(request.getMethod().toString()) 
+					.ipAddress(request.getRemoteAddr()) 
+					.stackTrace(ExceptionUtils.getStackTrace(e))
+					.userAgent(request.getHeader("User-Agent"))
+					.statusCode(errorCode.getStatus().value())
+					.message(errorCode.getMsg())
+					.userId(userId)
+					.build());
+		}
         return apiResponse;
 	} 
 }

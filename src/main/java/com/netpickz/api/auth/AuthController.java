@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.AuthRequest;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.dto.VerifyDTO;
 import com.netpickz.core.auth.service.AuthService;
@@ -33,7 +34,7 @@ public class AuthController {
 	@GetMapping("")
 	public ResponseEntity<TokenDTO> getGuestToken(HttpServletResponse response)  {
 		var tokenDTO = authService.createToken("guest");
-		response.addHeader("Set-Cookie", tokenDTO.getCookie().toString()); // 
+		response.addHeader("Set-Cookie", tokenDTO.getCookie().toString());
 		return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
 	}
 	
@@ -63,11 +64,11 @@ public class AuthController {
 	
 	@Operation(summary = "swagger에서 사용자 로그아웃 (테스트 용) ", description = "사용자 로그아웃 처리합니다.")
 	@PostMapping("/swagger-logout")
-	public ResponseEntity<String> userLogout(
+	public ResponseEntity<CommonDTO> userLogout(
 			@org.springframework.web.bind.annotation.RequestBody AccessTokenRequest request)  {
 		// TODO 로그아웃 시 토큰 상태 값 변경 및 쿠키에서 삭제.
-		var success = authService.userLogout(request);
-		return ResponseEntity.status(HttpStatus.OK).body(success);
+		var dto = authService.userLogout(request);
+		return ResponseEntity.status(HttpStatus.OK).body(dto);
 	}
 	
 }

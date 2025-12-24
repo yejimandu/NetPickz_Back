@@ -60,6 +60,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	// https://mvnrepository.com/artifact/de.huxhorn.sulky/de.huxhorn.sulky.ulid
 implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0'
+// https://mvnrepository.com/artifact/org.mapstruct/mapstruct
+implementation 'org.mapstruct:mapstruct:1.6.3'
+// https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
+annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
 }
 
 tasks.named('test') {
