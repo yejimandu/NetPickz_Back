@@ -11,6 +11,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,9 @@ public class MovieEntity {
 	@Column(name="created_at")
 	@UpdateTimestamp
 	private Timestamp createdAt;
+	
+	@OneToOne(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private MovieInfoEntity movieInfo;
 	
     @OneToMany(mappedBy = "movieEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default //

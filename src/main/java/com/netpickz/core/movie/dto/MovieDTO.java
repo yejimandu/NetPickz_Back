@@ -35,7 +35,8 @@ public class MovieDTO {
 	private List<Integer> genres;
 	@Schema(description = "원어", example = "en", required = true)
 	private String originalLanguage;
+	@Schema(description = "영화상태", example = "(예:개봉전, 개봉완료, 취소됨)", required = true)
 	private String status;
-	@Schema(description = "영화 제공 업체 고유 ID", example = "7", required = true)
-	private String providerId;
+    @Schema(description = "영화 제공 업체 고유 ID", example = "7", required = true)
+    private String providerId;
 }
