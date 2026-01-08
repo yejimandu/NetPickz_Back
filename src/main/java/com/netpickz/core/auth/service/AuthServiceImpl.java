@@ -109,8 +109,8 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public VerifyDTO verifyToken(AccessTokenRequest request) {
 		try {
-			var isVerify = jwtUtil.isExpired(request.getAccessToken());
-			return new VerifyDTO(!isVerify);
+			var expired = jwtUtil.isExpired(request.getAccessToken());
+			return new VerifyDTO(!expired ); // expired=false → valid=true
 		}catch (IllegalArgumentException  e) {
 			throw new NetPickzException(ErrorCode.TOKEN_MISSING);
 		}
@@ -141,7 +141,7 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public CommonDTO userLogout(AccessTokenRequest request) {
 		var userId = jwtUtil.getUsername(request.getAccessToken());
-		if("guest".equals(userId)) {
+		if("guest".equals(userId)) { // TODO enum 변경
 			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
 		}
 		tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);

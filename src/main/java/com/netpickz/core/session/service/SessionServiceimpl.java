@@ -14,6 +14,7 @@ import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.session.dto.SessionDTO;
 import com.netpickz.core.session.entity.SessionEntity;
+import com.netpickz.core.session.mapper.SessionMapper;
 import com.netpickz.core.session.repository.SessionRepository;
 import com.netpickz.core.user.entity.UserEntity;
 
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SessionServiceimpl implements SessionService {
 
+	private final SessionMapper sessionMapper;
 	private final TmdbClient tmdbClient;
 	private final SessionRepository sessionRepository;
 	
@@ -38,21 +40,16 @@ public class SessionServiceimpl implements SessionService {
         var timestamp = Timestamp.from(zdt.toInstant());
         var sessionId = "Guest".equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
         var expiresAt =  "Guest".equals(sessionType.toString()) ? timestamp : null;
-		var sessionEntity = SessionEntity.builder()
+        
+        var sessionInfo = sessionRepository.saveAndFlush(SessionEntity.builder()
                 .id(IdGenerator.getId("SS_"))
 				.sessionId(sessionId)
 				.expiresAt(expiresAt)
                 .type(sessionType)
                 .userEntity(UserEntity.builder().userId(userId).build())
-				.build();
+				.build());
         
-        var session = sessionRepository.saveAndFlush(sessionEntity);
-        var sessionDto = SessionDTO.builder()
-                .sessionId(session.getSessionId())
-                .expireDate(String.valueOf(session.getExpiresAt()))
-                .sessionType(session.getType())
-                .userId(userId)
-                .build();
+        var sessionDto = sessionMapper.sessionToSessionDTO(sessionInfo);
         log.info("Save Session Info. sessionDto={}", sessionDto.toString());
         return Optional.of(sessionDto);
 	}
@@ -62,10 +59,8 @@ public class SessionServiceimpl implements SessionService {
     	log.debug("Find Session Info. sessionId={}", sessionId);
         var sessionEntity = sessionRepository.findBySessionId(sessionId)
         		.orElseThrow(() -> new NetPickzException(ErrorCode.SESSION_NOT_FOUND));
-        var sessionDto = SessionDTO.builder()
-		    		.sessionId(sessionEntity.getSessionId())
-		    		.userId(sessionEntity.getUserEntity().getUserId())
-		    		.build();
+        
+        var sessionDto = sessionMapper.sessionToSessionDTO(sessionEntity);
         log.info("Session Info Found. sessionId={}, userId={}", sessionDto.getSessionId(), sessionDto.getUserId());
         return Optional.of(sessionDto);
     }
