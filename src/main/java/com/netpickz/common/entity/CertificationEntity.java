@@ -18,10 +18,11 @@ import lombok.NoArgsConstructor;
 @Table(name="certifications")
 @Builder
 public class CertificationEntity {
+	
 	@Comment("관람등급 아이디")
-	@Id
-	private String certification ;
-	@Comment("관람등급명")
+	@Id@Column(unique = true , name = "certification_id")
+	private String certificationId ;
+	@Comment("관람등급 설명")
 	@Column(length = 500)
 	private String meaning ;
 	@Comment("순서")
