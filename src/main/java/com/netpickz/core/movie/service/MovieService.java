@@ -30,7 +30,8 @@ public interface MovieService {
 
 	Optional<List<ProviderDTO>> getProviders(AsyncType type);
 
-	Optional<List<MovieDTO>> getProviderByMovieId(String movieId);
+	List<MovieDTO> getProviderByMovieId(String movieId);
+//	Optional<List<MovieDTO>> getProviderByMovieId(String movieId);
 
 	Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId);
 
@@ -40,5 +41,5 @@ public interface MovieService {
 
 	Optional<RatingDTO> addRatingByUserId(String movieId, RatingRequest ratingRequest);
 
-	void deleteRatingByUserId(String movieId, String sessionId);
+	boolean deleteRatingByUserId(String movieId, String sessionId);
 }

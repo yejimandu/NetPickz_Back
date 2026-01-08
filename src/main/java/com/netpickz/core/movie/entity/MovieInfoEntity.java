@@ -1,4 +1,4 @@
-package com.netpickz.core.movie.entity;
+	package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
 
@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -36,16 +37,18 @@ public class MovieInfoEntity {
 	
 	@Column(name="over_view", length = 500)
 	private String overView ;
+	
+	@Column
+	private Integer runtime;
 
 	@Column(name="poster_path")
 	private String posterPath  ;
 
 	@Column(name="release_date")
-	private String releaseDate   ;
+	private String releaseDate  ;
 	
-    @OneToOne
-    @JoinColumn(name = "certification_id", nullable = true)
-    private CertificationEntity certificationEntity;
+	@Column
+	private String status  ;
 	
 	@Column(name="created_at")
 	@UpdateTimestamp

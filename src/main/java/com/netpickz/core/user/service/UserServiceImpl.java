@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 		var sessionDto = sessionService.getSessionInfo(request.getSessionId())
 				.orElseThrow(() -> new NetPickzException(ErrorCode.SESSION_NOT_FOUND));
 		
-		userRatingInfoRepository.save(UserRatingInfoEntity.builder()
+		 userRatingInfoRepository.save(UserRatingInfoEntity.builder()
 				.id(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build())
 				.rating(rating.floatValue())
 				.guestSessionId(request.getSessionId())
@@ -114,21 +114,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Optional<List<UserDTO>> getHistoryByUserId(String userId) {
+	public Optional<List<RatingDTO>> getHistoryByUserId(String userId) {
 		log.debug("Find User Rating History info: userId={}" , userId);
 		getUserInfoByUserId(userId)
 			.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND)); // userID 있는지 체크 
 		var userRatingEntity = userRatingInfoRepository.findByIdUserId(userId);
-		// TODO
-		
-		var userDtos = userRatingEntity.stream().map(e -> UserDTO.builder()
-				.userId(e.getUserEntity().getUserId())
-				.movieId(e.getMovieEntity().getMovieId())
-				.sessionId(e.getGuestSessionId())
-				.build())
-				.toList();
-		log.info("User Rating History info Found: movieId={}, count={}", userId, userDtos.size());
-		return Optional.of(userDtos);
+		var ratingDtos = userMapper.userToUserDTO(userRatingEntity);
+		log.info("User Rating History info Found: userId={}, count={}", userId, ratingDtos.size());
+		return Optional.of(ratingDtos);
 	}
 
 	@Override
