@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.enumType.StateType;
+import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.service.UserService;
 
@@ -64,11 +65,11 @@ public class UserController {
 	
 	@Operation(summary = "사용자 히스토리 정보 조회", description = "사용자 ID 기준으로 히스토리 내역을 조회합니다.")
 	@GetMapping("/{userId}/history")
-	public ResponseEntity<List<UserDTO>> getHistoryByUserId(
+	public ResponseEntity<List<RatingDTO>> getHistoryByUserId(
 			@PathVariable(name = "userId") String userId) {
 		// TODO
-		var userDto =  userService.getHistoryByUserId(userId);
-		return ResponseEntity.status(HttpStatus.OK).body(userDto.orElse(null));
+		var ratingDto =  userService.getHistoryByUserId(userId);
+		return ResponseEntity.status(HttpStatus.OK).body(ratingDto.orElse(null));
 	}
 	
 	@Operation(summary = "사용자 상태 변경", description = "사용자 ID 기준으로 사용자 상태를 변경합니다.")

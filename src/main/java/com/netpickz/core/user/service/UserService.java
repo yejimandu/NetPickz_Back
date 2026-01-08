@@ -21,7 +21,7 @@ public interface UserService {
 
 	void deleteRatingByUser(String movieId, String sessionId);
 
-	Optional<List<UserDTO>> getHistoryByUserId(String userId);
+	Optional<List<RatingDTO>> getHistoryByUserId(String userId);
 
 	int updateUserState(String userId, StateType type);
 
