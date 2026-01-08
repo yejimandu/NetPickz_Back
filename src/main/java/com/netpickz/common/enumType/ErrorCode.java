@@ -48,10 +48,25 @@ public enum ErrorCode {
 	TMDB_BAD_GATEWAY("TMDB_007", "TMDB 게이트웨이 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
 	TMDB_SERVICE_UNAVAILABLE("TMDB_008", "TMDB 서비스가 현재 이용 불가 상태입니다. 잠시 후 다시 시도해주세요.", HttpStatus.SERVICE_UNAVAILABLE),
 	TMDB_GATEWAY_TIMEOUT("TMDB_009", "TMDB 서버 응답 시간이 초과되었습니다.", HttpStatus.GATEWAY_TIMEOUT),
-
+	TMDB_MOVIE_NOT_FOUND("TMDB_010", "TMDB내 영화 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_MOVIE_PROVIDER_NOT_FOUND("TMDB_011", "TMDB내 영화의 제공자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_GENRE_NOT_FOUND("TMDB_012", "TMDB내 장르 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_CERTIFICATION_NOT_FOUND("TMDB_013", "TMDB내 연령등급 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_MOVIELIST_BY_CATEGORY_NOT_FOUND("TMDB_014", "TMDB내 카테고리 타입별 영화목록 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_MOVIELIST_BY_TIMETYPE_NOT_FOUND("TMDB_015", "TMDB내 시간타입별 영화목록 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_PROVIDERS_NOT_FOUND("TMDB_016", "TMDB내 영화 제공자 목록 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_SIMILARLIST_NOT_FOUND("TMDB_017", "TMDB내 비슷한 영화 목록 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_MOVIELIST_SEARCH_NOT_FOUND("TMDB_018", "TMDB내 검색 영화 결과 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_MOVIELIST_FILTER_NOT_FOUND("TMDB_019", "TMDB내 필터 영화 결과 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	
 	SERVER_ERROR("SERVER_001", "요청을 처리 중 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
 	MOVIE_NOT_FOUND("MOVIE_001", "영화 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+
+	GENRE_NOT_FOUND("GENRE_001", "장르 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	
+	RATING_DELETE_FAILED("RATING_001", "평가 정보 삭제에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	RATING_ADD_FAILED("RATING_002", "평가 정보 저장에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
 	USER_NOT_FOUND("USER_001", "사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 	USER_PASSWORD_INVALID("USER_002", "사용자 비밀번호가 유효하지 않습니다.", HttpStatus.BAD_GATEWAY),
@@ -60,7 +75,7 @@ public enum ErrorCode {
 
 	DATABASE_ERROR("DB_001", "DB 서버 오류가 발생했습니다..", HttpStatus.INTERNAL_SERVER_ERROR),
 	DATABASE_DUPLICATE_KEY("DB_002", "DB PK/Unique 제약 조건 위반되었습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-	DATABASE_DATA_INTERGRITY_VIOLATION("DB_003", "DB FK 제약 조건, NOT NULL 위반 등 데이터 무결성 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	DATABASE_DATA_INTERGRITY_VIOLATION("DB_003", "DB FK 제약 조건, NOT NULL 위반 등 데이터 무결성 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),  
 
 	;
 

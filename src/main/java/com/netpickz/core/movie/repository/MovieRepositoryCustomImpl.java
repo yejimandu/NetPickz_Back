@@ -8,6 +8,8 @@ import com.netpickz.core.movie.dto.MovieDTO;
 import com.netpickz.core.movie.entity.MovieInfoEntity;
 import com.netpickz.core.movie.entity.QMovieEntity;
 import com.netpickz.core.movie.entity.QMovieInfoEntity;
+import com.netpickz.core.movie.mapper.MovieMapper;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -17,52 +19,30 @@ import lombok.RequiredArgsConstructor;
 public class MovieRepositoryCustomImpl implements MovieRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
-
+	private final MovieMapper movieMapper;
 
 	@Override
 	public Optional<MovieDTO> findByMovieId(String movieId) {
-		QMovieEntity qMovieEntity = QMovieEntity.movieEntity;
-		QMovieInfoEntity qMovieInfoEntity = QMovieInfoEntity.movieInfoEntity;
-		
-		MovieInfoEntity info = queryFactory
-			    .selectFrom(qMovieInfoEntity)
-			    .join(qMovieInfoEntity.movieEntity, qMovieEntity).fetchJoin()
-			    .where(qMovieEntity.movieId.eq(movieId))
-			    .fetchOne();
-	 	return Optional.of(MovieDTO.builder()
-			    .id(info.getMovieEntity().getId())
-			    .movieId(info.getMovieEntity().getMovieId())
-			    .title(info.getMovieEntity().getTitle())
-			    .overview(info.getOverView())
-			    .posterPath(info.getPosterPath())
-			    .releaseDate(info.getReleaseDate())
-			    .build());
+		return findByPredicate(QMovieEntity.movieEntity.movieId.eq(movieId));
 	}
-
 
 	@Override
 	public Optional<MovieDTO> findByExternalId(String id) {
+	return findByPredicate(QMovieEntity.movieEntity.id.eq(id));
+	}
+
+	private Optional<MovieDTO> findByPredicate(BooleanExpression predicate){
+		
 		QMovieEntity qMovieEntity = QMovieEntity.movieEntity;
 		QMovieInfoEntity qMovieInfoEntity = QMovieInfoEntity.movieInfoEntity;
-		
 		MovieInfoEntity info = queryFactory
 			    .selectFrom(qMovieInfoEntity)
 			    .join(qMovieInfoEntity.movieEntity, qMovieEntity).fetchJoin()
-			    .where(qMovieEntity.id.eq(id))
+			    .where(predicate)
 			    .fetchOne();
-		if(info == null) {
-			return Optional.empty();
-		}
-	 	return Optional.of(MovieDTO.builder()
-			    .id(info.getMovieEntity().getId())
-			    .movieId(info.getMovieEntity().getMovieId())
-			    .title(info.getMovieEntity().getTitle())
-			    .overview(info.getOverView())
-			    .posterPath(info.getPosterPath())
-			    .releaseDate(info.getReleaseDate())
-			    .build());
+		
+	 	return Optional.ofNullable(info)
+	 				.map(movieMapper::entityToDto);
+
 	}
-
-
-
 }
