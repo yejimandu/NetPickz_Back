@@ -1,5 +1,6 @@
 package com.netpickz.api.movie;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -94,7 +95,7 @@ public class MovieController {
 	public ResponseEntity<List<MovieDTO>> getMovieProviderList(   
 			@PathVariable(name = "movieId") String movieId) {
 		var movieDTOs = movieService.getProviderByMovieId(movieId);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
+		return ResponseEntity.ok(movieDTOs);
 	}
 	
 	@Operation(summary = "비슷한 영화 목록 조회", description = "영화 ID 기준으로 비슷한 영화 목록을 조회합니다.")
@@ -150,12 +151,12 @@ public class MovieController {
 //	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@Parameter(name = "sessionId", required = true, description = "세션아이디")
 	@DeleteMapping("/{movieId}/rating")
-	public ResponseEntity<String> deleteRating(
+	public ResponseEntity<Boolean> deleteRating(
 			@PathVariable(name = "movieId") String movieId,
 			@RequestParam(name="sessionId") String sessionId) {
 		// TODO
-		movieService.deleteRatingByUserId(movieId, sessionId);
-		return  new ResponseEntity<>("OK", HttpStatus.OK);
+		 var flag =  movieService.deleteRatingByUserId(movieId, sessionId);
+		return  new ResponseEntity<>(flag, HttpStatus.OK);
 	}
 	
     @Operation(summary = "영화 간단 검색", description = "영화 제목 기준으로 영화를 검색합니다.")
