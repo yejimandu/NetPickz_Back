@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.AuthRequest;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.dto.VerifyDTO;
@@ -33,7 +34,7 @@ public class AuthController {
 	@Operation(summary = "게스트 토큰 발급", description = "로그인전 통신을 위한 게스트용 토큰 발급합니다.")
 	@GetMapping("")
 	public ResponseEntity<TokenDTO> getGuestToken(HttpServletResponse response)  {
-		var tokenDTO = authService.createToken("guest");
+		var tokenDTO = authService.createToken(Constants.GUEST_TYPE);
 		response.addHeader("Set-Cookie", tokenDTO.getCookie().toString());
 		return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
 	}
