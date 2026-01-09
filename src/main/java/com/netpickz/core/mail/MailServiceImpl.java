@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.netpickz.api.mail.request.MailVerifyRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.handler.NetPickzException;
@@ -38,9 +39,8 @@ public class MailServiceImpl implements MailService {
 //		sMailMessage.setFrom("noreply@baeldung.com");
 		sMailMessage.setFrom("jeonsongyong27@gmail.com");
 		sMailMessage.setTo(email);
-		sMailMessage.setSubject("[netpickz] 이메일 인증 코드");
-		var msg = "[netpickz] 이메일 인증 코드 \n 아래 인증번호를 입력해주세요\n " + code + "\n (유효시간: 5분)";
-		sMailMessage.setText(msg);
+		sMailMessage.setSubject(Constants.MAIL_SUBJECT);
+		sMailMessage.setText(Constants.MAIL_TEXT1 + code + Constants.MAIL_TEXT2);
 		try {
 			mailSender.send(sMailMessage);
 		}catch (MailException e) {
@@ -54,7 +54,7 @@ public class MailServiceImpl implements MailService {
 			log.error("Fail to Connect Redis. email={}, code={}, msg={}", email, code , e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
 		}
-		return CommonDTO.builder().status(true).message("인증번호가 발송 되었습니다.").build();
+		return CommonDTO.builder().status(true).message(Constants.MAIL_SEND_SUCCESS).build();
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class MailServiceImpl implements MailService {
 			if(value.equals(code)) {
 				throw new NetPickzException(ErrorCode.MAIL_VERIFY_FAIL);
 			}
-			return CommonDTO.builder().status(code.equals(value)).message("인증 성공").build();
+			return CommonDTO.builder().status(code.equals(value)).message(Constants.MAIL_VERIFY_SUCCESS).build();
 		}catch (RedisException e) {
 			log.error("Fail to Connect Redis. email={}, code={}, msg={}", request.getEmail(), code, e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
