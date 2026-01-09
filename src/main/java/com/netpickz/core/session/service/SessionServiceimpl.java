@@ -38,8 +38,8 @@ public class SessionServiceimpl implements SessionService {
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
         var zdt = ZonedDateTime.parse(tmdbSessionResponse.getExpiresAt(), formatter);
         var timestamp = Timestamp.from(zdt.toInstant());
-        var sessionId = "Guest".equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
-        var expiresAt =  "Guest".equals(sessionType.toString()) ? timestamp : null;
+        var sessionId = SessionType.Guest.equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
+        var expiresAt = SessionType.Guest.equals(sessionType.toString()) ? timestamp : null;
         
         var sessionInfo = sessionRepository.saveAndFlush(SessionEntity.builder()
                 .id(IdGenerator.getId("SS_"))
