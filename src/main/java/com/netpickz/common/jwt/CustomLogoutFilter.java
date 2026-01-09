@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.netpickz.api.auth.request.AccessTokenRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.core.auth.service.AuthService;
 
 import jakarta.servlet.FilterChain;
@@ -58,7 +59,7 @@ public class CustomLogoutFilter extends GenericFilterBean{
 								.build());
 
         //4. cookie 값 초기화
-        Cookie cookie = new Cookie("refresh", null);
+        Cookie cookie = new Cookie(Constants.REFRESH, "");
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);

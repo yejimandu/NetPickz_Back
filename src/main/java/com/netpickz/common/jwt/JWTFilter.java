@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.core.auth.dto.TokenDTO;
@@ -82,7 +83,7 @@ public class JWTFilter extends OncePerRequestFilter{
 	    var refresh = new String();
 	    if(cookies != null) {
 		     refresh =  Arrays.stream(cookies)
-		            .filter(c -> "refresh".equals(c.getName()))
+		            .filter(c -> Constants.REFRESH.equals(c.getName()))
 	   	            .map(Cookie::getValue)
 		            .findFirst()
 		            .orElse(null); 
@@ -101,7 +102,7 @@ public class JWTFilter extends OncePerRequestFilter{
 		
 		// 토큰이 access 인지 체크
 		var category = jwtUtil.getCategory(accessToken);
-		if(!"access".equals(category)) {
+		if(!Constants.ACCESS.equals(category)) {
 			// response body 
 			var writer = response.getWriter();
 			writer.print("invalid access token");
@@ -111,7 +112,7 @@ public class JWTFilter extends OncePerRequestFilter{
 		}
 		
 		var username = jwtUtil.getUsername(accessToken);
-		if(!"guest".equals(username)) {
+		if(!Constants.GUEST_TYPE.equals(username)) {
 			// userInfoEntity 생성해서 값 set
 			var userInfoEntiy = UserInfoEntity.builder().userId(username).build();
 			// userDetail에다가 정보 넣기

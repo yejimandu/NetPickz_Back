@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.enumType.StateType;
 import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.user.dto.UserDTO;
@@ -39,7 +40,7 @@ public class UserController {
 	public ResponseEntity<UserDTO> getUserInfo(
 			@PathVariable(name = "userId") String userId, Authentication authentication) {
 
-		if("me".equals(userId)) {
+		if(Constants.ME.equals(userId)) {
 			userId = authentication.getName();
 		}
 		var userDto = userService.getUserInfoByUserId(userId);
@@ -80,7 +81,7 @@ public class UserController {
 			@RequestParam(name = "stateType") StateType type) {
 		// TODO
 		var val =  userService.updateUserState(userId, type);
-		return  new ResponseEntity<String>(val == 1 ? "완" : " 놉", HttpStatus.OK);
+		return  new ResponseEntity<String>(val == 1 ? "완" : " 놉", HttpStatus.OK);//TODO
 	}
 	
 }
