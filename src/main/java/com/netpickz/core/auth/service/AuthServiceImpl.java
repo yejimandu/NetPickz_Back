@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.api.auth.request.LoginRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.dto.CommonDTO;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.TokenStatusType;
@@ -21,11 +22,6 @@ import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
 import com.netpickz.core.auth.repository.TokenRepositoryCustom;
 import com.netpickz.core.user.service.UserService;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,10 +56,10 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public TokenDTO createToken(String username) {
 		log.debug("Create Token. userId={}", username);
-		var access = jwtUtil.createJwt("access", username,  600000L); // 10분
-	    var refresh = jwtUtil.createJwt("refresh", username, 86400000L); // 24시간	
+		var access = jwtUtil.createJwt(Constants.ACCESS, username,  600000L); // 10분
+	    var refresh = jwtUtil.createJwt(Constants.REFRESH, username, 86400000L); // 24시간	
 	    
-	    if(!"guest".equals(username)) {
+	    if(!Constants.GUEST_TYPE.equals(username)) {
 	    	createTokenByUserId(access, refresh);
 	    }
 
@@ -127,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
 		
 		// 카테고리 체크
 	    var category = jwtUtil.getCategory(refreshToken);
-        if (!category.equals("refresh")) {
+    	if (!Constants.REFRESH.equals(category)) {
         	throw new NetPickzException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
 		
@@ -141,11 +137,11 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public CommonDTO userLogout(AccessTokenRequest request) {
 		var userId = jwtUtil.getUsername(request.getAccessToken());
-		if("guest".equals(userId)) { // TODO enum 변경
+		if(Constants.GUEST_TYPE.equals(userId)) { 
 			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
 		}
 		tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
-		return CommonDTO.builder().status(true).message("로그아웃 성공").build();
+		return CommonDTO.builder().status(true).message(Constants.LOGOUT_SUCCESS).build();
 	}
 
 }
