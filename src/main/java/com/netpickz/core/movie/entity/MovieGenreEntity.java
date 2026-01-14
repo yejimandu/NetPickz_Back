@@ -32,17 +32,17 @@ public class MovieGenreEntity {
 	@EmbeddedId
 	private MovieGenrePK id;
 	
-	    @ManyToOne
-	    @MapsId("movieId") // PK의 movieId와 매핑
-	    @JoinColumn(name="movie_id", nullable = true)
-	    private MovieEntity movieEntity;
-		
-	    @ManyToOne
-	    @MapsId("genreId") // PK의 genreId와 매핑
-	    @JoinColumn(name = "genre_id", nullable = true)
-	    private GenreEntity genreEntity;
+    @ManyToOne
+    @MapsId("movieId") // PK의 movieId와 매핑
+    @JoinColumn(name="movie_id")
+    private MovieEntity movieEntity;
 	
-	@Column(name="created_at")
+    @ManyToOne
+    @MapsId("genreId") // PK의 genreId와 매핑
+    @JoinColumn(name = "genre_id")
+    private GenreEntity genreEntity;
+	
+	@Column(name="created_at",  nullable = false)
 	@CreationTimestamp
 	private Timestamp createdAt;
 	

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.netpickz.common.enumType.SessionType;
 import com.netpickz.core.session.dto.SessionDTO;
 import com.netpickz.core.session.service.SessionService;
 
@@ -30,7 +29,7 @@ public class SessionController {
 	@GetMapping("/guest")
     public ResponseEntity<SessionDTO> createGuestSession(
             @RequestParam(name = "userId") String userId) {
-        var sessionDto =  sessionService.createSession(userId, SessionType.Guest);
+        var sessionDto =  sessionService.createSession(userId);
         return ResponseEntity.status(HttpStatus.OK).body(sessionDto.orElse(null));
 	}
 	
