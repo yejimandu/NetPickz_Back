@@ -32,26 +32,26 @@ public class UserRatingInfoEntity {
 	
 	@OneToOne
 	@MapsId("movieId")
-    @JoinColumn(name = "movie_id", nullable = true)
+    @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movieEntity;
 	
 	@OneToOne
 	@MapsId("userId")
-	@JoinColumn(name = "user_id" , nullable = true)
+	@JoinColumn(name = "user_id" , nullable = false)
 	private UserEntity userEntity;
 	
-	@Column(name="guest_session_id")
-	private String guestSessionId;
+	@Column(name="session_id", nullable = false)
+	private String sessionId;
 	
-	@Column
+	@Column(nullable = false)
 	private float rating ;
 	
-	@Column(name="created_at")
+	@Column(name="created_at", nullable = false, updatable = false)
 	@CreationTimestamp
 	private Timestamp createdAt;
 	
-	@Column(name="modified_at")
+	@Column(name="updated_at", updatable = true)
 	@UpdateTimestamp
-	private Timestamp modifiedAt ;
+	private Timestamp updatedAt ;
 	
 }

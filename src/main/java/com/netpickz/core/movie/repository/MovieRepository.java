@@ -6,5 +6,4 @@ import com.netpickz.core.movie.entity.MovieEntity;
 
 public interface MovieRepository extends JpaRepository<MovieEntity, String>{
 
-//	 Optional<MovieEntity> findByMovieId(String movieId);
 }

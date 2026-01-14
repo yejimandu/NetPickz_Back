@@ -40,7 +40,7 @@ public class MovieProviderEntity {
     @JoinColumn(name = "provider_id")
     private ProvidersEntity providersEntity;
     
-    @Column(name="created_at")
+    @Column(name="created_at", nullable = false)
     @UpdateTimestamp
 	private Timestamp createdAt;
 }
