@@ -1,4 +1,4 @@
-package com.netpickz.core.log;
+package com.netpickz.core.log.service;
 
 import com.netpickz.common.dto.LogDTO;
 

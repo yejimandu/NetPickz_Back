@@ -25,4 +25,6 @@ public interface UserService {
 
 	int updateUserState(String userId, StateType type);
 
+	void updateEmailVerified(String email, boolean value);
+
 }

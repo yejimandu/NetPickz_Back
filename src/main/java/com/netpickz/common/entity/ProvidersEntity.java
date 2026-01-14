@@ -1,6 +1,9 @@
 package com.netpickz.common.entity;
 
+import java.sql.Timestamp;
+
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,13 +24,20 @@ public class ProvidersEntity {
 	@Comment("제공업체 아이디")
 	@Id
 	private String id;
+	
 	@Comment("제공업체명")
-	@Column
+	@Column(nullable = false)
 	private String name;
+	
 	@Comment("제공업체로고 이미지경로")
-	@Column(name="logo_path")
+	@Column(name="logo_path", nullable = false)
 	private String logoPath;
+	
 	@Comment("순서")
 	@Column(name="order_number")
-	private String orderNum;
+	private Integer orderNum;
+
+	@Column(name="created_at", nullable = false)
+    @UpdateTimestamp
+	private Timestamp createdAt;
 }

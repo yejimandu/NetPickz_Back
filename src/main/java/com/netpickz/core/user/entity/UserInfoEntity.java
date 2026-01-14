@@ -32,17 +32,17 @@ public class UserInfoEntity {
 	@Column(name="user_id")
 	private String userId;
 
-	@Column(nullable = true)
+	@Column(nullable = false)
 	private String name;
 
 	@Column(unique = true)
 	private String email ;
 
 	@Column(name = "is_email_verified", nullable = false)
-    private boolean emailVerified = false; // 기본값 false
+    private boolean emailVerified; // 기본값 false
 	
 	@Column(name="include_adult", nullable = false)
-	private boolean includeAdult = false ;
+	private boolean includeAdult;
 	
 	@Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -51,13 +51,13 @@ public class UserInfoEntity {
 	@Column(name = "user_password", nullable = false, length = 100)
 	private String password ;
 	
-	@Column(name="created_at")
+	@Column(name="created_at", nullable = false, updatable = false)
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@Column(name="modified_at")
+	@Column(name="updated_at", updatable = true)
 	@CreationTimestamp
-	private Timestamp modifiedAt;
+	private Timestamp updatedAt;
 	
 	@OneToOne
 	@MapsId
