@@ -4,13 +4,10 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.netpickz.common.entity.CertificationEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -35,7 +32,7 @@ public class MovieInfoEntity {
 	@JoinColumn(name = "movie_id")
 	private MovieEntity movieEntity;
 	
-	@Column(name="over_view", length = 500)
+	@Column(length = 500)
 	private String overView ;
 	
 	@Column
@@ -47,12 +44,15 @@ public class MovieInfoEntity {
 	@Column(name="release_date")
 	private String releaseDate  ;
 	
-	@Column
+	@Column(nullable = false)
 	private String status  ;
 	
-	@Column(name="created_at")
+	@Column(name="created_at", nullable = false, updatable = false) 
 	@UpdateTimestamp
 	private Timestamp createdAt;
 	
+	@Column(name="updated_at", updatable = true)
+	@UpdateTimestamp
+	private Timestamp updatedAt ;
 	
 }
