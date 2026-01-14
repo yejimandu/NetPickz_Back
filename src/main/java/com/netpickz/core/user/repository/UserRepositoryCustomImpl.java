@@ -9,6 +9,7 @@ import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.entity.QUserEntity;
 import com.netpickz.core.user.entity.QUserInfoEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
+import com.netpickz.core.user.mapper.UserMapper;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.transaction.Transactional;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
+	private final UserMapper userMapper;
 
 	@Override
 	public Optional<UserDTO> findByUserId(String userId) {
@@ -32,12 +34,8 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 				.where(qUser.userId.eq(userId))
 				.fetchOne();
 		
-		var dto = UserDTO.builder()
-				.userId(userInfo.getUserId())
-				.name(userInfo.getName())
-				.password(userInfo.getPassword())
-				.build();
-		return Optional.of(dto);
+		var userDto = userMapper.userToUserDTO(userInfo);
+		return Optional.of(userDto);
 	}
 
 	@Override
@@ -60,6 +58,19 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 		.set(qUserInfo.state, type)
 		.where(qUserInfo.userEntity.userId.eq(userId))
 		.execute();
+	}
+
+	@Override
+	@Transactional
+	public void updateEmailVerifiedByEmail(String email, boolean value) {
+		QUserInfoEntity qUserInfo = QUserInfoEntity.userInfoEntity;
+		
+		var dd = queryFactory.update(qUserInfo)
+		.set(qUserInfo.emailVerified, value)
+		.where(qUserInfo.email.eq(email))
+		.execute();
+		System.out.println(dd);
+		
 	}
 	
 	

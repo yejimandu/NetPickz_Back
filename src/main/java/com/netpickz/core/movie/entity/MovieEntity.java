@@ -30,13 +30,13 @@ public class MovieEntity {
 	@Column(name="movie_id")
 	private String movieId ;
 	
-	@Column(unique = true)
+	@Column(unique = true, nullable = false)
 	private String id;
 
-	@Column
+	@Column(nullable = false)
 	private String title;
 	
-	@Column(name="created_at")
+	@Column(name="created_at", nullable = false)
 	@UpdateTimestamp
 	private Timestamp createdAt;
 	

@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.netpickz.common.enumType.ErrorCode;
-import com.netpickz.common.enumType.SessionType;
 import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
@@ -31,21 +30,18 @@ public class SessionServiceimpl implements SessionService {
 	private final SessionRepository sessionRepository;
 	
 	@Override
-	public Optional<SessionDTO> createSession(String userId, SessionType sessionType) {
+	public Optional<SessionDTO> createSession(String userId) {
 		log.debug("Create Session. userId={}", userId);
 		var tmdbSessionResponse =  tmdbClient.createGuestSession().getBody();
 		
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
         var zdt = ZonedDateTime.parse(tmdbSessionResponse.getExpiresAt(), formatter);
-        var timestamp = Timestamp.from(zdt.toInstant());
-        var sessionId = SessionType.Guest.equals(sessionType.toString()) ? tmdbSessionResponse.getGuestSessionId() : tmdbSessionResponse.getSessionId();
-        var expiresAt = SessionType.Guest.equals(sessionType.toString()) ? timestamp : null;
+        var expiresAt = Timestamp.from(zdt.toInstant());
         
-        var sessionInfo = sessionRepository.saveAndFlush(SessionEntity.builder()
+        var sessionInfo = sessionRepository.save(SessionEntity.builder()
                 .id(IdGenerator.getId("SS_"))
-				.sessionId(sessionId)
+				.sessionId(tmdbSessionResponse.getGuestSessionId())
 				.expiresAt(expiresAt)
-                .type(sessionType)
                 .userEntity(UserEntity.builder().userId(userId).build())
 				.build());
         
