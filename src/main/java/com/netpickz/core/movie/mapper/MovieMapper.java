@@ -31,19 +31,22 @@ public interface MovieMapper {
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "providers", ignore = true)
 	@Mapping(target = "genres", ignore = true)
+	@Mapping(target = "movieInfo", ignore = true)
 	MovieEntity tmdbMovieToEntity(TmdbMovieResponse tmdbMovie, String movieId);
 
 	@Mapping(target = "createdAt", ignore = true)
-	@Mapping(target = "certificationEntity", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(source = "tmdbMovie.overview", target = "overView")
 	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie);
 	
 	@Mapping(target = "createdAt", ignore = true)
-	@Mapping(target = "certificationEntity", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(source = "tmdbMovie.overview", target = "overView")
 	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie, String movieId);
 	
 	@Mapping(target = "genres", ignore = true)
+	@Mapping(target = "originalLanguage", ignore = true)
+	@Mapping(target = "providerId", ignore = true)
 	@Mapping(source = "movieInfo.posterPath", target = "posterPath")
 	@Mapping(source = "movieInfo.releaseDate", target = "releaseDate")
 	@Mapping(source = "movieInfo.overView", target = "overview")
@@ -54,6 +57,9 @@ public interface MovieMapper {
 	@Mapping(source = "overView", target = "overview")
 	@Mapping(source = "movieEntity.id", target = "id")
 	@Mapping(source = "movieEntity.title", target = "title")
+	@Mapping(target = "genres", ignore = true)
+	@Mapping(target = "providerId", ignore = true)
+	@Mapping(target = "originalLanguage", ignore = true)
 	MovieDTO entityToDto(MovieInfoEntity movieInfoEntity);
 	
 //	MovieDTO movieToMovieDTO(MovieInfoEntity movieInfoEntity);
@@ -62,18 +68,22 @@ public interface MovieMapper {
 //	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie);
 	
 	@Mapping(source = "genreIds", target = "genres")
+	@Mapping(target = "providerId", ignore = true)
+	@Mapping(target = "movieId", ignore = true)
     MovieDTO tmdbMovieToMovieDto(TmdbMovieResponse tmdbMovie);
 	List<MovieDTO> tmdbMoviesToMovieDto(List<TmdbMovieResponse> tmdbmovies);
 	
 	@Mapping(source = "providerId", target = "id")
 	@Mapping(source = "providerName", target = "name")
 	@Mapping(source = "displayPriority", target = "orderNum")
+	@Mapping(target = "createdAt", ignore = true)
 	ProvidersEntity tmdbProviderToEntity(TmdbWatchProviderResponse tmdbMovie);
 	List<ProvidersEntity> tmdbProvidersToEntity(List<TmdbWatchProviderResponse> results);
 	List<ProviderDTO> providerToDTO(List<ProvidersEntity> providerEntitys);
 	
 	@Mapping(source = "order", target = "orderNum")
 	@Mapping(source = "certification", target = "certificationId")
+	@Mapping(target = "createdAt", ignore = true)
 	CertificationEntity tmdbCertificationToEntity(TmdbCertificationResponse tmdbCertification);
 	List<CertificationEntity> tmdbCertificationsToEntity(List<TmdbCertificationResponse> results);
 	
@@ -81,6 +91,7 @@ public interface MovieMapper {
 	CertificationDTO entityToDTO(CertificationEntity entity);
 	List<CertificationDTO> entityToDTO(List<CertificationEntity> entitys);
 	
+	@Mapping(target = "createdAt", ignore = true)
 	GenreEntity tmdbGenreToEntity(TmdbGenreResponse tmdbGenre);
 	List<GenreEntity> tmdbGenresToEntity(List<TmdbGenreResponse> tmdbGenres);
 	
@@ -90,6 +101,8 @@ public interface MovieMapper {
 
 	@Mapping(target = "id", expression = "java(createMovieGenrePK(movieEntity, tmdbGenre.getId()))")
 	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "movieEntity", ignore = true)
+	@Mapping(target = "genreEntity", ignore = true)
 	MovieGenreEntity tmdbGenreToMovieGenreEntity(TmdbGenreResponse tmdbGenre, MovieEntity movieEntity);
 	
 	default List<MovieGenreEntity> tmdbGenresToMovieGenreEntity(List<TmdbGenreResponse> tmdbGenres, MovieEntity movieEntity) {
@@ -107,6 +120,7 @@ public interface MovieMapper {
 	}
 	
 	@Mapping(target = "id", expression = "java(createMovieProviderPK(movieEntity, String.valueOf(tmdb.getProviderId())))")
+	@Mapping(target = "providersEntity", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
 	MovieProviderEntity tmdbWatchProviderToEntity(TmdbWatchProviderResponse tmdb, MovieEntity movieEntity);
 	

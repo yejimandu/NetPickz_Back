@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
 		 userRatingInfoRepository.save(UserRatingInfoEntity.builder()
 				.id(UserRatingInfoPK.builder().userId(sessionDto.getUserId()).movieId(movieId).build())
 				.rating(rating.floatValue())
-				.guestSessionId(request.getSessionId())
+				.sessionId(request.getSessionId())
 				.movieEntity(MovieEntity.builder().movieId(movieId).build())
 				.userEntity(UserEntity.builder().userId(sessionDto.getUserId()).build())
 				.build()
@@ -132,5 +132,11 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
 		log.info("Update User State Succesed: userId={}, type={}", userId, user.getState());
 		return type.equals(user.getState()) ? 1 : 0;
+	}
+
+	@Override
+	public void updateEmailVerified(String email, boolean value) {
+		log.debug("Update User Email Verified : email={}, value={}" ,email, value);
+		userRepositoryCustom.updateEmailVerifiedByEmail(email, value);
 	}
 }

@@ -15,12 +15,21 @@ import com.netpickz.core.user.entity.UserRatingInfoEntity;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 	
+	 @Mapping(target = "sessionId", ignore = true)
+	 @Mapping(target = "name", ignore = true)
+	 @Mapping(target = "email", ignore = true)
+	 @Mapping(target = "movieId", ignore = true)
+	 @Mapping(target = "state", ignore = true)
+	 @Mapping(target = "password", ignore = true)
 	 UserDTO userToUserDTO(UserEntity userEntity);
+	 
+	 @Mapping(source = "userEntity.userId" , target = "userId")
+	 @Mapping(target = "sessionId", ignore = true)
+	 @Mapping(target = "movieId", ignore = true)
 	 UserDTO userToUserDTO(UserInfoEntity userInfoEntity);
-	 UserDTO userToUserDTO(UserRatingInfoEntity UserRatingInfoEntity);
 	 
 	 @Mapping(source = "userEntity.userId", target = "userId")
 	 @Mapping(source = "movieEntity.movieId", target = "movieId")
-	 @Mapping(source = "guestSessionId", target = "sessionId")
+	 RatingDTO userToUserDTO(UserRatingInfoEntity UserRatingInfoEntity);
 	 List<RatingDTO> userToUserDTO(List<UserRatingInfoEntity> UserRatingInfoEntitys );
 }
