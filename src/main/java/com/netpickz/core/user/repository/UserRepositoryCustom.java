@@ -14,5 +14,7 @@ public interface UserRepositoryCustom {
 
 	void updateStateByUserId(String userId, StateType type);
 
+	void updateEmailVerifiedByEmail(String email, boolean value);
+
 
 }

@@ -4,20 +4,20 @@ spring:
   # database 연결
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mariadb://localhost:3306/netpickz
-    username: root
-    password: 181128
-    driver-class-name: org.mariadb.jdbc.Driver 
+    url: ${DB_URL}
+    username: ${DB_NAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER_NAME}
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none 
+      ddl-auto: ${JPA_DDL_AUTO} 
 #      ddl-auto: create 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: jeonsongyong27@gmail.com
-    password: qozi ilrs rbgk qksz
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
      mail: 
       smtp:
@@ -26,10 +26,10 @@ spring:
         enable: true    
   data:
     redis:
-      host: localhost  # Redis 서버 주소
-      port: 6379       # 기본 포트   
+      host: ${REDIS_HOST}  # Redis 서버 주소
+      port: ${REDIS_PORT}       # 기본 포트   
   jwt:
-   secret: MyNetpickzSecretKey!!2025jwtSuperLongRandomPart122! # jwt 복호화 시 사용
+   secret: ${JWT_SECRET} # jwt 복호화 시 사용
 server:
   servlet:
     context-path: /
@@ -46,5 +46,5 @@ logging:
 
 tmdb:
   api:
-    key : 849673b235e88d4045f4d45e77d2de7111
-  
+    key : ${TMDB_API_KEY}
+  url : ${TMDB_URL}

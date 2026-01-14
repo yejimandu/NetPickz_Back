@@ -1,6 +1,9 @@
 package com.netpickz.common.entity;
 
+import java.sql.Timestamp;
+
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,10 +25,16 @@ public class CertificationEntity {
 	@Comment("관람등급 아이디")
 	@Id@Column(unique = true , name = "certification_id")
 	private String certificationId ;
+	
 	@Comment("관람등급 설명")
 	@Column(length = 500)
 	private String meaning ;
+	
 	@Comment("순서")
 	@Column(name="order_Number")
 	private Integer orderNum  ;
+	
+	@Column(name="created_at", nullable = false)
+    @UpdateTimestamp
+	private Timestamp createdAt;
 }

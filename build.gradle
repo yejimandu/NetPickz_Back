@@ -65,6 +65,12 @@ implementation 'org.mapstruct:mapstruct:1.6.3'
 // https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
 annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
+	//implementation(platform("me.paulschwarz:spring-dotenv-bom:$version"))
+    // Source: https://mvnrepository.com/artifact/me.paulschwarz/spring-dotenv
+	//implementation 'me.paulschwarz:spring-dotenv:2.5.4'
+    //developmentOnly("me.paulschwarz:springboot4-dotenv")
+	// Source: https://mvnrepository.com/artifact/me.paulschwarz/spring-dotenv-bom
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0' 
 }
 
 tasks.named('test') {

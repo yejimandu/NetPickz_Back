@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.common.enumType.TokenStatusType;
 
@@ -31,29 +30,29 @@ public class TokenIssuanceHistoryEntity {
 	private String id;
 	
 	@Comment("사용자 아이디")
-	@Column(name = "user_id")
+	@Column(name = "user_id", nullable = false)
 	private String userId;
 	
-	@Column(name="access_token_hash")
+	@Column(name="access_token_hash", nullable = false)
 	private String accessTokenHash;
 	
 	@Comment("액세스 토큰 발급일")
-	@Column(name="access_issued_at")
+	@Column(name="access_issued_at", nullable = false)
 	private String  accessIssuedAt; // long
 	
 	@Comment("액세스 토큰 만료일")
-	@Column(name="access_expires_at")
+	@Column(name="access_expires_at", nullable = false)
 	private String  accessExpiresAt; //long
 	
-	@Column(name="refresh_token_hash")
+	@Column(name="refresh_token_hash", nullable = false)
 	private String refreshTokenHash;
 	
 	@Comment("리프레쉬 토큰 발급일")
-	@Column(name="refresh_issued_at")
+	@Column(name="refresh_issued_at", nullable = false)
 	private String refreshIssuedAt; // long
 	
 	@Comment("리프레쉬 토큰 만료일")
-	@Column(name="refresh_expires_at")
+	@Column(name="refresh_expires_at", nullable = false)
 	private String refreshExpiresAt; //long
 	
 	@Comment("토큰 상태")
@@ -61,12 +60,8 @@ public class TokenIssuanceHistoryEntity {
     @Column(nullable = false)
 	private TokenStatusType status;
 	
-	@Column(name="created_at", insertable = true, updatable = false)
+	@Column(name="created_at", nullable = false)
 	@CreationTimestamp
 	private Timestamp createdAt;
 
-	@Column(name="updated_at", insertable = true, updatable = true)
-	@UpdateTimestamp
-	private Timestamp updatedAt;
-	
 }
