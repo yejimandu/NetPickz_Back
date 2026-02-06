@@ -1,21 +1,22 @@
 package com.netpickz.core.user.repository;
 
+import static com.netpickz.core.user.entity.QUserEntity.userEntity;
+import static com.netpickz.core.user.entity.QUserInfoEntity.userInfoEntity;
+
 import java.util.Optional;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import com.netpickz.common.enumType.StateType;
 import com.netpickz.core.user.dto.UserDTO;
-import com.netpickz.core.user.entity.QUserEntity;
-import com.netpickz.core.user.entity.QUserInfoEntity;
 import com.netpickz.core.user.entity.UserInfoEntity;
 import com.netpickz.core.user.mapper.UserMapper;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-@Repository
 @RequiredArgsConstructor
 public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
@@ -24,54 +25,54 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
 	@Override
 	public Optional<UserDTO> findByUserId(String userId) {
-		QUserEntity qUser = QUserEntity.userEntity;
-		QUserInfoEntity qUserInfo = QUserInfoEntity.userInfoEntity;
-		
 		UserInfoEntity userInfo = queryFactory
-				.selectFrom(qUserInfo)
-				.join(qUserInfo.userEntity, qUser)
+				.selectFrom(userInfoEntity)
+				.join(userInfoEntity.userEntity, userEntity)
 				.fetchJoin()
-				.where(qUser.userId.eq(userId))
+				.where(userEntity.userId.eq(userId))
 				.fetchOne();
 		
-		var userDto = userMapper.userToUserDTO(userInfo);
-		return Optional.of(userDto);
+		return Optional.ofNullable(userInfo)
+				.map(userMapper::userToUserDTO);
 	}
 
 	@Override
 	@Transactional
 	public void upsert(UserInfoEntity userInfo) {
-		QUserInfoEntity qUserInfo = QUserInfoEntity.userInfoEntity;
-		
-		queryFactory.update(qUserInfo)
-		.set(qUserInfo.name ,userInfo.getName())
-		.where(qUserInfo.userEntity.userId.eq(userInfo.getUserEntity().getUserId()))
+		queryFactory
+		.update(userInfoEntity)
+		.set(userInfoEntity.name ,userInfo.getName())
+		.where(userIdEq(userInfo.getUserId()))
 		.execute();
 	}
 
 	@Override
 	@Transactional
 	public void updateStateByUserId(String userId, StateType type) {
-		QUserInfoEntity qUserInfo = QUserInfoEntity.userInfoEntity;
-		
-		queryFactory.update(qUserInfo)
-		.set(qUserInfo.state, type)
-		.where(qUserInfo.userEntity.userId.eq(userId))
+		queryFactory
+		.update(userInfoEntity)
+		.set(userInfoEntity.state, type)
+		.where(userIdEq(userId))
 		.execute();
 	}
 
 	@Override
 	@Transactional
 	public void updateEmailVerifiedByEmail(String email, boolean value) {
-		QUserInfoEntity qUserInfo = QUserInfoEntity.userInfoEntity;
-		
-		var dd = queryFactory.update(qUserInfo)
-		.set(qUserInfo.emailVerified, value)
-		.where(qUserInfo.email.eq(email))
+		queryFactory
+			.update(userInfoEntity)
+			.set(userInfoEntity.emailVerified, value)
+			.where(emailEq(email))
 		.execute();
-		System.out.println(dd);
-		
 	}
 	
+	private BooleanExpression userIdEq(String userId) {
+		return StringUtils.hasText(userId) ? userInfoEntity.userEntity.userId.eq(userId) : null;
+	}
+
+	private BooleanExpression emailEq(String email) {
+		return StringUtils.hasText(email) ? userInfoEntity.email.eq(email) : null;
+	}
+
 	
 }

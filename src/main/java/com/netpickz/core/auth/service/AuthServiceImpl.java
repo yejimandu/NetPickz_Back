@@ -19,7 +19,6 @@ import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.dto.VerifyDTO;
 import com.netpickz.core.auth.entity.TokenIssuanceHistoryEntity;
 import com.netpickz.core.auth.repository.TokenIssuanceHistoryRepository;
-import com.netpickz.core.auth.repository.TokenRepositoryCustom;
 import com.netpickz.core.user.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ public class AuthServiceImpl implements AuthService {
 
 	private final JWTUtil jwtUtil;
 	private final TokenIssuanceHistoryRepository tokenIssuanceHistoryRepository;
-	private final TokenRepositoryCustom tokenRepositoryCustom;
 	private final PasswordEncoder encoder;
 	private final UserService userService;
 
@@ -52,7 +50,6 @@ public class AuthServiceImpl implements AuthService {
 		return createToken(userId);
 	}
 
-//	@Transactional
 	@Override
 	public TokenDTO createToken(String username) {
 		log.debug("Create Token. userId={}", username);
@@ -88,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
 	    var refreshIssuedAt = jwtUtil.getIssuedAt(refresh);
 	    var refreshExpiresAt = jwtUtil.getExpiresAt(refresh);
 	    
-	    tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
+	    tokenIssuanceHistoryRepository.updateStateByUserId(userId, TokenStatusType.Inactive);
 	    tokenIssuanceHistoryRepository.save(TokenIssuanceHistoryEntity.builder()
     		.id(IdGenerator.getId("TN_"))
     		.userId(userId)
@@ -117,7 +114,7 @@ public class AuthServiceImpl implements AuthService {
 		
 		if(refreshToken == null || refreshToken.isEmpty()) {
 			throw new NetPickzException(ErrorCode.REFRESH_TOKEN_NULL);
-		} 
+		}
 		
 		jwtUtil.isExpired(refreshToken);
 		
@@ -140,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
 		if(Constants.GUEST_TYPE.equals(userId)) { 
 			throw new NetPickzException(ErrorCode.AUTH_GUEST_NOT_ALLOWED);
 		}
-		tokenRepositoryCustom.updateStateByUserId(userId, TokenStatusType.Inactive);
+		tokenIssuanceHistoryRepository.updateStateByUserId(userId, TokenStatusType.Inactive);
 		return CommonDTO.builder().status(true).message(Constants.LOGOUT_SUCCESS).build();
 	}
 
