@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,10 +56,12 @@ public class UserController {
 	}
 	
 	@Operation(summary = "사용자 정보 수정", description = "요청 정보 기준으로 사용자 정보를 수정합니다.")
-	@PutMapping("")
+	@PatchMapping("/{userId}") 
 	public ResponseEntity<UserDTO> updateUser(
+			@PathVariable(name = "userId") String userId,
 			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
 		// TODO
+		request.setUserId(userId);
 		var userDto = userService.updateUser(request);
 		return ResponseEntity.status(HttpStatus.OK).body(userDto.orElse(null));
 	}
@@ -75,13 +77,12 @@ public class UserController {
 	
 	@Operation(summary = "사용자 상태 변경", description = "사용자 ID 기준으로 사용자 상태를 변경합니다.")
 	@Parameter(name = "stateType" , required = true, description = "사용자 상태 타입")
-	@GetMapping("/{userId}/state")
+	@PatchMapping("/{userId}/state")
 	public ResponseEntity<String> updateUserState(
 			@PathVariable(name = "userId") String userId,
 			@RequestParam(name = "stateType") StateType type) {
-		// TODO
-		var val =  userService.updateUserState(userId, type);
-		return  new ResponseEntity<String>(val == 1 ? "완" : " 놉", HttpStatus.OK);//TODO
+		var msg =  userService.updateUserState(userId, type);
+		return ResponseEntity.status(HttpStatus.OK).body(msg);
 	}
 	
 }

@@ -11,5 +11,6 @@ public class Constants {
 	public static final String MAIL_TEXT2 = "\n (유효시간: 5분) ";
 	public static final String MAIL_SEND_SUCCESS = "인증번호가 발송 되었습니다.";
 	public static final String MAIL_VERIFY_SUCCESS = "인증 성공";
+	public static final String UPDATE_SUCCESS = "변경사항이 저장되었습니다.";
 
 }

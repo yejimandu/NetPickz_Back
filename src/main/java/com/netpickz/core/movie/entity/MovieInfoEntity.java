@@ -15,12 +15,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
 @Table(name="movie_info")
+@ToString(exclude = {"movieEntity"})
 public class MovieInfoEntity {
 	
 	@Id
