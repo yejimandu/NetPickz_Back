@@ -12,30 +12,34 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
 @Builder
 @Table(name="user_rating_info")
+@ToString(exclude = {"movieEntity", "userEntity"})
 public class UserRatingInfoEntity {
 	
 	@EmbeddedId
 	private UserRatingInfoPK id;
 	
-	@OneToOne
+//	@OneToOne
+	@ManyToOne
 	@MapsId("movieId")
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movieEntity;
 	
-	@OneToOne
+//	@OneToOne
+	@ManyToOne
 	@MapsId("userId")
 	@JoinColumn(name = "user_id" , nullable = false)
 	private UserEntity userEntity;

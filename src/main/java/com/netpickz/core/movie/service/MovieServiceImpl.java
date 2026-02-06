@@ -31,9 +31,9 @@ import com.netpickz.core.movie.entity.MovieGenreEntity;
 import com.netpickz.core.movie.entity.MovieProviderEntity;
 import com.netpickz.core.movie.entity.pk.MovieGenrePK;
 import com.netpickz.core.movie.mapper.MovieMapper;
+import com.netpickz.core.movie.repository.MovieInfoRepository;
 import com.netpickz.core.movie.repository.MovieProviderRepository;
 import com.netpickz.core.movie.repository.MovieRepository;
-import com.netpickz.core.movie.repository.MovieRepositoryCustom;
 import com.netpickz.core.user.service.UserService;
 
 import jakarta.transaction.Transactional;
@@ -45,8 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
+    private final MovieInfoRepository movieInfoRepository;
 	private final MovieRepository movieRepository;
-	private final MovieRepositoryCustom movieRepositoryCustom;
 	private final GenreRepository genreRepository;
 	private final CertificationRepository certificationRepository;
 	private final ProvidersRepository providersRepository;
@@ -59,7 +59,7 @@ public class MovieServiceImpl implements MovieService {
 	@Override
 	public Optional<MovieDTO> getMovieInfoByExternalId(String id) {
 		log.debug("Find MovieInfo By ExternalId. id={}", id);
-		var movieDto = movieRepositoryCustom.findByExternalId(id);
+		var movieDto = movieRepository.findByExternalId(id);
 		if(movieDto.isPresent()) {
 			return movieDto;
 		}
@@ -157,7 +157,7 @@ public class MovieServiceImpl implements MovieService {
 			var upsertMovie = movieRepository.save(movie.get());
 			log.debug("Movie upsert: movieId={}", upsertMovie.getMovieId());
 		}
-		return  movieRepositoryCustom.findByMovieId(movieId);
+		return  movieRepository.findByMovieId(movieId);
 	}
 
 	@Override
