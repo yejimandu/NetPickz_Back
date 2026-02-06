@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,6 +26,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name="movie_provider")
 @Builder
+@ToString(exclude = {"movieEntity", "providersEntity"})
 public class MovieProviderEntity {
 
 	@EmbeddedId

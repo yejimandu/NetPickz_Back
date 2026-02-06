@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.netpickz.api.movie.request.RatingRequest;
 import com.netpickz.api.user.request.UserRequest;
+import com.netpickz.common.constants.Constants;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.enumType.StateType;
 import com.netpickz.common.handler.NetPickzException;
@@ -23,7 +24,6 @@ import com.netpickz.core.user.mapper.UserMapper;
 import com.netpickz.core.user.repository.UserInfoRepository;
 import com.netpickz.core.user.repository.UserRatingInfoRepository;
 import com.netpickz.core.user.repository.UserRepository;
-import com.netpickz.core.user.repository.UserRepositoryCustom;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,6 @@ public class UserServiceImpl implements UserService {
 	private final UserRatingInfoRepository userRatingInfoRepository;
 	private final UserInfoRepository userInfoRepository;
 	private final UserRepository userRepository;
-	private final UserRepositoryCustom userRepositoryCustom;
 	private final SessionService sessionService;
 
 	@Override
@@ -88,16 +87,16 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Optional<UserDTO> getUserInfoByUserId(String userId) {
 		log.debug("Find user info: userId={}" , userId);
-		return userRepositoryCustom.findByUserId(userId);
+		return userInfoRepository.findByUserId(userId);
 	}
 
 	@Override
 	public Optional<UserDTO> updateUser(UserRequest request) {
 		log.debug("Update user info: userId={}" , request.getUserId());
 		var userInfo = UserInfoEntity.builder()
-				.userEntity(UserEntity.builder().userId(request.getUserId()).build())
+				.userId(request.getUserId())
 				.name(request.getName()).build();
-		userRepositoryCustom.upsert(userInfo);
+		userInfoRepository.upsert(userInfo);
 		return getUserInfoByUserId(request.getUserId());
 	}
 
@@ -125,18 +124,16 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public int updateUserState(String userId, StateType type) {
+	public String updateUserState(String userId, StateType type) {
 		log.debug("Update User State: userId={}, type={}" , userId, type);
-		userRepositoryCustom.updateStateByUserId(userId, type);
-		var user = userInfoRepository.findById(userId)
-				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
-		log.info("Update User State Succesed: userId={}, type={}", userId, user.getState());
-		return type.equals(user.getState()) ? 1 : 0;
+		userInfoRepository.updateStateByUserId(userId, type);
+		log.info("Update User State Succesed: userId={}, type={}", userId, type);
+		return Constants.UPDATE_SUCCESS;
 	}
 
 	@Override
 	public void updateEmailVerified(String email, boolean value) {
 		log.debug("Update User Email Verified : email={}, value={}" ,email, value);
-		userRepositoryCustom.updateEmailVerifiedByEmail(email, value);
+		userInfoRepository.updateEmailVerifiedByEmail(email, value);
 	}
 }
