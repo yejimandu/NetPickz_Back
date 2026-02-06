@@ -16,7 +16,7 @@ import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.dto.LogDTO;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.jwt.JWTUtil;
-import com.netpickz.core.log.LogService;
+import com.netpickz.core.log.service.LogService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
