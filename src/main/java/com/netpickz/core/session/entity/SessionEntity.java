@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 
 @NoArgsConstructor
@@ -24,6 +25,7 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @Entity
 @Table(name="session_info")
+@ToString(exclude = {"userEntity"})
 public class SessionEntity {
 	
 	@Id

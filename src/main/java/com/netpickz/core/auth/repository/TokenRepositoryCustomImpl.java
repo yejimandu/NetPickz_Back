@@ -1,15 +1,16 @@
 package com.netpickz.core.auth.repository;
 
-import org.springframework.stereotype.Repository;
+import static com.netpickz.core.auth.entity.QTokenIssuanceHistoryEntity.tokenIssuanceHistoryEntity;
+
+import org.springframework.util.StringUtils;
 
 import com.netpickz.common.enumType.TokenStatusType;
-import com.netpickz.core.auth.entity.QTokenIssuanceHistoryEntity;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-@Repository
 @RequiredArgsConstructor
 public class TokenRepositoryCustomImpl implements TokenRepositoryCustom{
 	
@@ -18,11 +19,22 @@ public class TokenRepositoryCustomImpl implements TokenRepositoryCustom{
 	@Override
 	@Transactional
 	public void updateStateByUserId(String userId, TokenStatusType statusType) {
-		QTokenIssuanceHistoryEntity qHistoryEntity = QTokenIssuanceHistoryEntity.tokenIssuanceHistoryEntity;
-		queryFactory.update(qHistoryEntity)
-		.set(qHistoryEntity.status,  statusType)
-		.where(qHistoryEntity.userId.eq(userId), qHistoryEntity.status.eq(TokenStatusType.Active))
+		
+		queryFactory
+			.update(tokenIssuanceHistoryEntity)
+			.set(tokenIssuanceHistoryEntity.status,  statusType)
+			.where(userIdEq(userId), statusEq(TokenStatusType.Active))
 		.execute();
 	}
 
+	private BooleanExpression userIdEq(String userId) {
+		return StringUtils.hasText(userId) ? tokenIssuanceHistoryEntity.userId.eq(userId) : null;
+	}
+	
+	private BooleanExpression statusEq(TokenStatusType statusType) {
+		return statusType != null ? tokenIssuanceHistoryEntity.status.eq(statusType) : null;
+	}
+
 }
+
+

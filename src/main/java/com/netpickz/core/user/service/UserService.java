@@ -23,7 +23,7 @@ public interface UserService {
 
 	Optional<List<RatingDTO>> getHistoryByUserId(String userId);
 
-	int updateUserState(String userId, StateType type);
+	String updateUserState(String userId, StateType type);
 
 	void updateEmailVerified(String email, boolean value);
 

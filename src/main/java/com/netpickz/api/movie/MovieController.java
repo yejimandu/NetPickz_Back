@@ -1,6 +1,5 @@
 package com.netpickz.api.movie;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -148,7 +147,7 @@ public class MovieController {
 	
 	// TODO
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
-//	@Parameter(name = "movieId", required = true, description = "영화 ID")
+	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@Parameter(name = "sessionId", required = true, description = "세션아이디")
 	@DeleteMapping("/{movieId}/rating")
 	public ResponseEntity<Boolean> deleteRating(
@@ -168,6 +167,7 @@ public class MovieController {
 		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
     }
     
+    // TODO 보완
 	@Operation(summary = "영화 필터 검색", description = "다양한 필터 기준으로 영화를 검색합니다.")
 	@Parameter(name = "page", required = false, description = "페이지번호")
 	@Parameter(name = "withGenres", description = "특정 장르 포함", example = "28,15")
@@ -182,7 +182,6 @@ public class MovieController {
 			@RequestParam(name="sortBy") SortType sortType,
 			@RequestParam(name="includeAdult") Boolean includeAdult
 			) {
-		System.out.println("getSearchListTypeFilter");
 		var filterRequest = FilterRequest.builder().includeAdult(includeAdult).pageNum(pageNum).sortType(sortType);
 		if(StringUtils.isNotBlank(withGenres))filterRequest.withGenres(withGenres); 
 		if(StringUtils.isNotBlank(withPeople))filterRequest.withPeople(withPeople); 
