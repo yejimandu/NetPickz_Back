@@ -1,16 +1,25 @@
 package com.netpickz.core.movie.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netpickz.api.mail.MailController;
 import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.api.movie.request.RatingRequest;
+import com.netpickz.api.reco.RecommendController;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;
+import com.netpickz.common.entity.CertificationEntity;
 import com.netpickz.common.entity.GenreEntity;
 import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.ErrorCode;
@@ -24,8 +33,11 @@ import com.netpickz.common.util.IdGenerator;
 import com.netpickz.core.external.tmdb.TmdbClient;
 import com.netpickz.core.external.tmdb.TmdbGenreResponse;
 import com.netpickz.core.external.tmdb.TmdbMovieCategory;
+import com.netpickz.core.external.tmdb.TmdbMovieListResponse;
 import com.netpickz.core.external.tmdb.TmdbMovieRequest;
+import com.netpickz.core.external.tmdb.TmdbMovieResponse;
 import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.MovieListPageDTO;
 import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.movie.entity.MovieGenreEntity;
 import com.netpickz.core.movie.entity.MovieProviderEntity;
@@ -45,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
+
     private final MovieInfoRepository movieInfoRepository;
 	private final MovieRepository movieRepository;
 	private final GenreRepository genreRepository;
@@ -54,6 +67,7 @@ public class MovieServiceImpl implements MovieService {
 	private final TmdbClient tmdbClient;
 	private final UserService userService;
 	private final MovieMapper movieMapper;
+
 
 	@Transactional
 	@Override
@@ -82,9 +96,6 @@ public class MovieServiceImpl implements MovieService {
 		var movieEntity = movieMapper.tmdbMovieToEntity(response, movieId);
 		// 2. 자식 엔티티 저장
 		var infoEntity = movieMapper.tmdbMovieToInfoEntity(response);
-		// 연관관계 양쪽 세팅 (중요!)
-		infoEntity.setMovieEntity(movieEntity);
-		movieEntity.setMovieInfo(infoEntity);
 		
 		// 3. genres 엔티티 저장
 		var movieGenresEntity = movieMapper.tmdbGenresToMovieGenreEntity(response.getGenres(),movieEntity);
@@ -106,7 +117,25 @@ public class MovieServiceImpl implements MovieService {
 				}
 				movieEntity.setProviders(movieProvidersEntity);
 			}
-		
+		// 5. certifications 값 가져와서 저장
+		var releaseRes = tmdbClient.getReleaseDateList(TmdbMovieRequest.builder().movieId(response.getId()).build()).getBody();
+		if(releaseRes != null) {
+	        var krReleaseDate = releaseRes.getResults().stream()
+	                .filter(r -> "KR".equals(r.getCountryCode()))
+	                .flatMap(r -> r.getReleaseDates().stream())
+	                .filter(rd -> rd.getType() == 3 || rd.getType() == 4)
+	                .findFirst();
+	        if(krReleaseDate.isPresent()) {
+	        	var certCode = krReleaseDate.get().getCertification();
+	        	if ("18".equals(certCode)) {
+	        	    certCode = "19"; // 한국 기준 최신 등급으로 보정
+	        	}
+	        	infoEntity.setCertificationEntity(CertificationEntity.builder().certificationId(certCode).build());
+	        }
+		}
+		// 연관관계 양쪽 세팅 (중요!)
+		infoEntity.setMovieEntity(movieEntity);
+		movieEntity.setMovieInfo(infoEntity);
 		var savedMovie = movieRepository.save(movieEntity);
 		log.debug("Movie saved: movieId={}", savedMovie.getMovieId());
 		var genrsIds = response.getGenres().stream().map(e -> e.getId()).toList();
@@ -161,7 +190,7 @@ public class MovieServiceImpl implements MovieService {
 	}
 
 	@Override
-	public Optional<List<GenreDTO>> getMovieGenres(AsyncType type) {
+	public List<GenreDTO> getMovieGenres(AsyncType type) {
 		log.debug("Find MovieGenres. asynType={}", type);
 		if(Boolean.valueOf(type.getValue())) {
 			var tmdbGenreResponse = tmdbClient.getGenreList().getBody();
@@ -174,11 +203,11 @@ public class MovieServiceImpl implements MovieService {
 		var genresEntity = genreRepository.findAll();
 		var genres = movieMapper.genreToGenreDTO(genresEntity);
 		log.info("movieGenres Found.count={}",genres.size());
-		return Optional.of(genres);
+		return genres;
 	}
 
 	@Override
-	public Optional<List<CertificationDTO>> getMovieCertifications(AsyncType type) {
+	public List<CertificationDTO> getMovieCertifications(AsyncType type) {
 		log.debug("Find Certifications. asynType={}", type);
 		if(Boolean.valueOf(type.getValue())) {
 			var tmdbCetificationResponse =  tmdbClient.getCertificationList().getBody();
@@ -201,37 +230,69 @@ public class MovieServiceImpl implements MovieService {
 		var certifications = certificationRepository.findAll();
 		var certificationDtos = movieMapper.entityToDTO(certifications);
 		log.info("movie Certifications. count={}", certificationDtos.size());
-		return Optional.of(certificationDtos);
+		return certificationDtos;
 	}
 
 
+	@Async
 	@Override
-	public Optional<List<MovieDTO>> getMovieListByType(MovieCategory category) {
+	public CompletableFuture<List<MovieDTO>> getMovieListByType(MovieCategory category) {
 		log.debug("Find CategoryMovieList. category={}", category);
-		var tmdbMoviesResponse = tmdbClient.getMovieList(TmdbMovieCategory.valueOf(category.getValue())).getBody();
-		if(tmdbMoviesResponse == null) {
-			throw new NetPickzException(ErrorCode.TMDB_MOVIELIST_BY_CATEGORY_NOT_FOUND);
-		}
+		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
 		
-		var typeMovieDtos = movieMapper.tmdbMoviesToMovieDto(tmdbMoviesResponse.getResults());
-		log.info("MovieList By Category Found. count={}", typeMovieDtos.size());
-		return Optional.of(typeMovieDtos);
-	}
-
-	@Override
-	public Optional<List<MovieDTO>> getMovieListByTimeType(TimeType timeType) {
-		log.debug("Find ovieListByTimeType. TimeType={}", timeType);
-		var tmdbMoviesResponse = tmdbClient.getMovieTrendList(timeType.getValue()).getBody();
-		if(tmdbMoviesResponse == null) {
-			throw new NetPickzException(ErrorCode.TMDB_MOVIELIST_BY_TIMETYPE_NOT_FOUND);
+		var page = 1;
+		while(krReleasedMovies.size() < 10) {
+			var tmdbMoviesResponse = tmdbClient.getMovieList(TmdbMovieCategory.valueOf(category.getValue()), page).getBody();
+			if(tmdbMoviesResponse == null || tmdbMoviesResponse.getResults() == null || tmdbMoviesResponse.getResults().isEmpty() ) {
+				return CompletableFuture.completedFuture(Collections.emptyList());
+			}
+			getKrReleasedTmdbMovies(krReleasedMovies, tmdbMoviesResponse, 10);
+			page++;
 		}
-		var timeTypeMovieDtos = movieMapper.tmdbMoviesToMovieDto(tmdbMoviesResponse.getResults());
+		var typeMovieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
+		log.info("MovieList By Category Found. count={}", typeMovieDtos.size());
+		return CompletableFuture.completedFuture(typeMovieDtos);
+	}
+	
+	
+//	public CompletableFuture<List<MovieDTO>> getMovieListByType(MovieCategory category) {
+//		log.debug("Find CategoryMovieList. category={}", category);
+//		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
+//		
+//		var page = 1;
+//		while(krReleasedMovies.size() < 10) {
+//			var tmdbMoviesResponse = tmdbClient.getMovieList(TmdbMovieCategory.valueOf(category.getValue()), page).getBody();
+//			if(tmdbMoviesResponse == null || tmdbMoviesResponse.getResults() == null || tmdbMoviesResponse.getResults().isEmpty() ) {
+//				return Collections.emptyList();
+//			}
+//			getKrReleasedTmdbMovies(krReleasedMovies, tmdbMoviesResponse);
+//			page++;
+//		}
+//		var typeMovieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
+//		log.info("MovieList By Category Found. count={}", typeMovieDtos.size());
+//		return typeMovieDtos;
+//	}
+
+	@Async
+	@Override
+	public CompletableFuture<List<MovieDTO>> getMovieListByTimeType(TimeType timeType) {
+		log.debug("Find ovieListByTimeType. TimeType={}", timeType);
+		
+		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
+		
+		var tmdbMoviesResponse = tmdbClient.getMovieTrendList(timeType.getValue()).getBody();
+		if(tmdbMoviesResponse == null || tmdbMoviesResponse.getResults() == null || tmdbMoviesResponse.getResults().isEmpty() ) {
+			return CompletableFuture.completedFuture(Collections.emptyList());
+		}
+		getKrReleasedTmdbMovies(krReleasedMovies, tmdbMoviesResponse, 10);
+		
+		var timeTypeMovieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
 		log.info("MovieList By TimeType Found. count={}", timeTypeMovieDtos.size());
-		return Optional.of(timeTypeMovieDtos);
+		return CompletableFuture.completedFuture(timeTypeMovieDtos);
 	}
 
 	@Override
-	public Optional<List<ProviderDTO>> getProviders(AsyncType type) {
+	public List<ProviderDTO> getProviders(AsyncType type) {
 		log.debug("Find Providers. AsyncType={}", type);
 		if(Boolean.valueOf(type.getValue())) {
 			var tmdbProviderResponse = tmdbClient.getProviderList().getBody();
@@ -244,7 +305,7 @@ public class MovieServiceImpl implements MovieService {
 		var providerEntitys = providersRepository.findAll();
 		var providerDtos = movieMapper.providerToDTO(providerEntitys);
 		log.info("ProviderList Found. count={}", providerDtos.size());
-		return Optional.of(providerDtos);
+		return providerDtos;
 	}
 
 	@Override
@@ -268,44 +329,98 @@ public class MovieServiceImpl implements MovieService {
 		}
 		return List.of();
 	}
-
+	
+	@Async
 	@Override
-	public Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId) {
+	public CompletableFuture<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId) {
 		log.debug("Find MovieSimilarList. movieId={}", movieId);
-		// TODO 중복처리 및 기존에 있는 값이면 처리
+		
+		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
+		// TODO 결과 없을때 
 		var movie = movieRepository.findById(movieId)
-					.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
-		var tmdbSimilarMoviesResponse = tmdbClient.getSimilarMovieListById(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
-		if(tmdbSimilarMoviesResponse == null ) {
-			throw new NetPickzException(ErrorCode.TMDB_SIMILARLIST_NOT_FOUND);
+				.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
+		
+		var page = 1;
+		while(krReleasedMovies.size() < 10) {
+			var tmdbSimilarResponse = tmdbClient.getSimilarMovieListById(
+					TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build(), page)
+					.getBody();
+			
+			if(tmdbSimilarResponse == null || tmdbSimilarResponse.getResults() == null || tmdbSimilarResponse.getResults().isEmpty() ) {
+				return CompletableFuture.completedFuture(Collections.emptyList());
+			}
+			getKrReleasedTmdbMovies(krReleasedMovies, tmdbSimilarResponse, 10 );
+			page++;
 		}
-		var similarMovieDtos = movieMapper.tmdbMoviesToMovieDto(tmdbSimilarMoviesResponse.getResults());
+
+		var similarMovieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
 		log.info("ProviderMovieList Found. movieId={}, count={}", movieId, similarMovieDtos.size());
-		return Optional.of(similarMovieDtos);
+		return CompletableFuture.completedFuture(similarMovieDtos);
+		
+		// TODO 중복처리 및 기존에 있는 값이면 처리
+//		var movie = movieRepository.findById(movieId)
+//					.orElseThrow(() -> new NetPickzException(ErrorCode.MOVIE_NOT_FOUND));
+//		var tmdbSimilarMoviesResponse = tmdbClient.getSimilarMovieListById(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
+//		if(tmdbSimilarMoviesResponse == null ) {
+//			throw new NetPickzException(ErrorCode.TMDB_SIMILARLIST_NOT_FOUND);
+//		}
+//		var filterResult = tmdbSimilarMoviesResponse.getResults().stream().filter((e) -> !e.getOverview().isBlank()).toList();
 	}
 
+	@Async
 	@Override
-	public Optional<List<MovieDTO>> getMovieListBySearch(String title) {
+	public CompletableFuture<MovieListPageDTO> getMovieListBySearch(String title, int page) {
 		log.debug("Find MovieList. title={}", title);
-		var tmdbMoviesResponse = tmdbClient.getMovieListBySearch(title).getBody();
-		if(tmdbMoviesResponse == null ) {
-			throw new NetPickzException(ErrorCode.TMDB_MOVIELIST_SEARCH_NOT_FOUND);
+		
+		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
+		var totalCount = 0;
+		var totalPage = 0;
+		// TODO 레디스에다가 조회한 데이터 id 값 저장하기 + 중복 안되도록
+		while(krReleasedMovies.size() < 12) {
+			var tmdbMoviesResponse = tmdbClient.getMovieListBySearch(title,page).getBody();
+			System.out.println(tmdbMoviesResponse.toString());
+			totalCount = tmdbMoviesResponse.getTotalResults();
+			totalPage = tmdbMoviesResponse.getTotalPages();
+			if(tmdbMoviesResponse == null || tmdbMoviesResponse.getResults() == null || tmdbMoviesResponse.getResults().isEmpty()) {
+				return CompletableFuture.completedFuture(null);// TODO
+			}
+			getKrReleasedTmdbMovies(krReleasedMovies, tmdbMoviesResponse, 12);
+			page++;//TODO
 		}
-		var movieDtos = movieMapper.tmdbMoviesToMovieDto(tmdbMoviesResponse.getResults());
+		// TODO 추후 vue 쪽에서 한 페이제 몇개 쩡도를 보여줄 지를 정한뒤 반환 리스트 크기 정해서 조절 필요
+//		var filterData = fetchKrReleasedTmdbMovies(tmdbMoviesResponse);
+		
+		var movieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
 		log.info("MovieList Found. title={}, count={}", title, movieDtos.size());
-		return Optional.of(movieDtos);
+		var movieListDtos = MovieListPageDTO.builder().movieDtos(movieDtos).totalPage(totalPage).totalCount(totalCount).build();
+		log.info("MovieList Found. totalCount={}, totalPage={}, count={}", movieListDtos.getTotalCount(), movieListDtos.getTotalPage(), movieListDtos.getTotalCount());
+		return CompletableFuture.completedFuture(movieListDtos);
+//		return CompletableFuture.completedFuture(movieDtos);
 	}
 
+	@Async
 	@Override
-	public Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest) {
+	public CompletableFuture<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest) {
 		log.debug("Find MovieList By Filter. filter={}", filterRequest.toString());
-		var tmdbMoviesResponse = tmdbClient.getMovieListByFilter(filterRequest).getBody();
-		if(tmdbMoviesResponse == null) {
-			throw new NetPickzException(ErrorCode.TMDB_MOVIELIST_FILTER_NOT_FOUND);
+		
+		var krReleasedMovies = new ArrayList<TmdbMovieResponse>();
+		var page = 1;
+		while(krReleasedMovies.size() < 10) {
+			filterRequest.setPage(page); //  TODO 
+			var tmdbMoviesResponse = tmdbClient.getMovieListByFilter(filterRequest).getBody();
+			System.out.println("getTotalPages : " + tmdbMoviesResponse.getTotalPages());
+			System.out.println("getTotalResults : " + tmdbMoviesResponse.getTotalResults() );
+			if(tmdbMoviesResponse == null || tmdbMoviesResponse.getResults() == null || tmdbMoviesResponse.getResults().isEmpty()) {
+				return CompletableFuture.completedFuture(Collections.emptyList());
+			}
+			getKrReleasedTmdbMovies(krReleasedMovies, tmdbMoviesResponse, 10 );
+			page++;
 		}
-		var movieDtos = movieMapper.tmdbMoviesToMovieDto(tmdbMoviesResponse.getResults());
+		
+		// TODO 추후 vue 쪽에서 한 페이제 몇개 쩡도를 보여줄 지를 정한뒤 반환 리스트 크기 먼저 정하기 ㄱㄱ
+		var movieDtos = movieMapper.tmdbMoviesToMovieDto(krReleasedMovies);
 		log.info("MovieList Found. count={}", movieDtos.size());
-		return Optional.of(movieDtos);
+		return CompletableFuture.completedFuture(movieDtos);
 	}
 
 	@Override
@@ -348,6 +463,51 @@ public class MovieServiceImpl implements MovieService {
 			return true;
 		}
 		throw new NetPickzException(ErrorCode.RATING_DELETE_FAILED);
+	}
+
+	@Override
+	public List<MovieDTO> getMovieCertification(String id) {
+		log.debug("get Certification. id={}", id);
+		var tmdbResponse = tmdbClient.getReleaseDateList(TmdbMovieRequest.builder().movieId(Integer.valueOf(id)).build()).getBody();
+		System.out.println(tmdbResponse);
+		if(tmdbResponse == null) {
+			throw new NetPickzException(ErrorCode.TMDB_MOVIE_NOT_FOUND); //
+		}
+		var res = tmdbResponse.getResults().stream().filter(e -> e.getCountryCode().equals("KR")).toList();
+		
+		var movieDtos = movieMapper.tmdbReleaseDateToMovieDto(res); // 
+		log.info("movie certification Found. count={}", movieDtos.size());
+		return movieDtos;
+	}
+	
+	private List<TmdbMovieResponse> getKrReleasedTmdbMovies(List<TmdbMovieResponse> krReleasedMovies,
+			TmdbMovieListResponse tmdbMoviesResponse , int size) {
+		var filterData = fetchKrReleasedTmdbMovies(tmdbMoviesResponse);
+		
+		int extraSize = size - krReleasedMovies.size();
+//		int extraSize = 10 - krReleasedMovies.size();
+		krReleasedMovies.addAll(filterData.stream().limit(extraSize).toList());
+		return krReleasedMovies;
+	}
+
+	private List<TmdbMovieResponse> fetchKrReleasedTmdbMovies(TmdbMovieListResponse tmdbMoviesResponse) {
+		return tmdbMoviesResponse.getResults().stream()
+			    .filter(movie -> {
+			        var releaseRes = tmdbClient.getReleaseDateList(TmdbMovieRequest.builder().movieId(Integer.valueOf(movie.getId())).build()).getBody();
+			        if (releaseRes == null) return false; 
+			        
+			        var krReleaseDate = releaseRes.getResults().stream()
+		                    .filter(r -> "KR".equals(r.getCountryCode()))
+		                    .flatMap(r -> r.getReleaseDates().stream())
+//		                    .filter(rd -> rd.getType() == 3 || rd.getType() == 4)
+		                    .findFirst();
+			        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+		            krReleaseDate.ifPresent(rd -> movie.setReleaseDate(LocalDate.parse(rd.getReleaseDate(), formatter).toString())); // ✅ 날짜 세팅(TODO 추후 좀 더 체크 필요)
+		            return krReleaseDate.isPresent(); // ✅ filter 조건rd.getReleaseDate()
+
+			    })
+			    .toList();
 	}
 
 }

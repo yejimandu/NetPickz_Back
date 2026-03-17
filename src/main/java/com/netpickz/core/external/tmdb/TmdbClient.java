@@ -142,12 +142,13 @@ public class TmdbClient  {
 			// /movie/popular
 			// /movie/top_rated
 			// /movie/upcoming
-	public ResponseEntity<TmdbMovieListResponse> getMovieList(TmdbMovieCategory tmdbMovieCategory) {
+	public ResponseEntity<TmdbMovieListResponse> getMovieList(TmdbMovieCategory tmdbMovieCategory, int page) {
 		return webClient
 			    .method(HttpMethod.GET)
 			    .uri(uriBuilder -> uriBuilder
 			    	.path(tmdbMovieCategory.getPath())
 			    	.queryParam("api_key", apiKey)
+			    	.queryParam("page", page)
 					.queryParam("language", "ko-KR")
 					.build()
 		    		)
@@ -180,6 +181,7 @@ public class TmdbClient  {
 			    		.queryParam("language", "ko-KR")
 			    		.queryParam("region", "KR")
 			    		.queryParam("with_release_type", "2|3|4|5")
+			    		.queryParam("page", filterRequest.getPage())
 			    		.queryParam("release_date.lte", LocalDate.now())
 			    		.queryParam("include_adult", filterRequest.getIncludeAdult())
 			    		.queryParam("sort_by", filterRequest.getSortType().getValue());
@@ -188,6 +190,14 @@ public class TmdbClient  {
 			    		.ifPresent(e -> uriBuilder.queryParam("with_genres", e));
 			    		Optional.ofNullable(filterRequest.getWithPeople())
 			    		.ifPresent(e -> uriBuilder.queryParam("with_people", e));
+			    		Optional.ofNullable(filterRequest.getCertification())
+			    		.ifPresent(e -> uriBuilder.queryParam("certification", e));
+			    		Optional.ofNullable(filterRequest.getCertificationGte())
+			    		.ifPresent(e -> uriBuilder.queryParam("certification.gte", e));
+			    		Optional.ofNullable(filterRequest.getCertificationLte())
+			    		.ifPresent(e -> uriBuilder.queryParam("certification.lte", e));
+			    		Optional.ofNullable(filterRequest.getCertificationCountry())
+			    		.ifPresent(e -> uriBuilder.queryParam("certification_country", e));
 			    		
 			    		return uriBuilder.build();
 		    		})
@@ -196,7 +206,7 @@ public class TmdbClient  {
 			    .block();
 	}
 	
-	public ResponseEntity<TmdbMovieListResponse> getMovieListBySearch(String title) {
+	public ResponseEntity<TmdbMovieListResponse> getMovieListBySearch(String title, int page) {
 		return webClient
 			    .method(HttpMethod.GET)
 			    .uri(uriBuilder -> uriBuilder
@@ -205,7 +215,7 @@ public class TmdbClient  {
 					.queryParam("language", "ko-KR")
 					.queryParam("region", "KR")
 					.queryParam("query", title)
-					.queryParam("page", 1)
+					.queryParam("page", page)
 					.build()
 		    		)
 			    .retrieve()
@@ -213,13 +223,14 @@ public class TmdbClient  {
 			    .block();
 	}
 	
-	public ResponseEntity<TmdbMovieListResponse> getSimilarMovieListById(TmdbMovieRequest request) {
+	public ResponseEntity<TmdbMovieListResponse> getSimilarMovieListById(TmdbMovieRequest request, int page) {
 		return webClient
 				.method(HttpMethod.GET)
 				.uri(uriBuilder -> uriBuilder
 				    	.path("/movie/{movie_id}/similar")
 				    	.queryParam("api_key", apiKey)
 						.queryParam("language", "ko-KR")
+						.queryParam("page", page)
 						.build(request.getMovieId())
 			    		)
 				.retrieve()
@@ -286,5 +297,19 @@ public class TmdbClient  {
 				.toEntity(TmdbMovieResponse.class)
 				.block();
 	} 
+	
+	// TODO Release Dates
+	public ResponseEntity<TmdbMovieReleaseDateListResponse> getReleaseDateList(TmdbMovieRequest request) {
+		return webClient
+				.method(HttpMethod.GET)
+				.uri(uriBuilder -> uriBuilder
+			    	.path("/movie/{movie_id}/release_dates")
+			    	.queryParam("api_key", apiKey)
+					.build(request.getMovieId()))
+				.retrieve()
+				.toEntity(TmdbMovieReleaseDateListResponse.class)
+				.block();
+	} 
+	
 	
 }

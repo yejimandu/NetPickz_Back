@@ -21,8 +21,8 @@ public class FilterConfig {
     }
     
     @Bean
-    public CustomLogoutFilter customLogoutFilter(AuthService authService) {
-        return new CustomLogoutFilter(authService);
+    public CustomLogoutFilter customLogoutFilter(AuthService authService, ObjectMapper objectMapper) {
+        return new CustomLogoutFilter(authService, objectMapper);
     }
 
 }

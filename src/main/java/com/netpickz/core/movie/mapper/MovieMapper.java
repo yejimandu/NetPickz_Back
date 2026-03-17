@@ -14,6 +14,7 @@ import com.netpickz.common.entity.GenreEntity;
 import com.netpickz.common.entity.ProvidersEntity;
 import com.netpickz.core.external.tmdb.TmdbCertificationResponse;
 import com.netpickz.core.external.tmdb.TmdbGenreResponse;
+import com.netpickz.core.external.tmdb.TmdbMovieReleaseDateResponse;
 import com.netpickz.core.external.tmdb.TmdbMovieResponse;
 import com.netpickz.core.external.tmdb.TmdbWatchProviderResponse;
 import com.netpickz.core.movie.dto.MovieDTO;
@@ -52,6 +53,7 @@ public interface MovieMapper {
 	@Mapping(source = "movieInfo.overView", target = "overview")
 	@Mapping(source = "movieInfo.runtime", target = "runtime")
 	@Mapping(source = "movieInfo.status", target = "status")
+	@Mapping(source = "movieInfo.certificationEntity.certificationId", target = "certification")
 	MovieDTO entityToDto(MovieEntity movieEntity);
 
 	@Mapping(source = "overView", target = "overview")
@@ -60,6 +62,7 @@ public interface MovieMapper {
 	@Mapping(target = "genres", ignore = true)
 	@Mapping(target = "providerId", ignore = true)
 	@Mapping(target = "originalLanguage", ignore = true)
+	@Mapping(source = "certificationEntity.certificationId", target = "certification")
 	MovieDTO entityToDto(MovieInfoEntity movieInfoEntity);
 	
 //	MovieDTO movieToMovieDTO(MovieInfoEntity movieInfoEntity);
@@ -72,6 +75,39 @@ public interface MovieMapper {
 	@Mapping(target = "movieId", ignore = true)
     MovieDTO tmdbMovieToMovieDto(TmdbMovieResponse tmdbMovie);
 	List<MovieDTO> tmdbMoviesToMovieDto(List<TmdbMovieResponse> tmdbmovies);
+	
+	// TODO
+	@Mapping(target = "genres", ignore = true)
+	@Mapping(target = "backdropPath", ignore = true)
+	@Mapping(target = "posterPath", ignore = true)
+	@Mapping(target = "providerId", ignore = true)
+	@Mapping(target = "movieId", ignore = true)
+	@Mapping(target = "overview", ignore = true)
+	@Mapping(target = "runtime", ignore = true)
+	@Mapping(target = "id", ignore = true)
+	@Mapping(target = "title", ignore = true)
+	@Mapping(target = "originalLanguage", ignore = true)
+	@Mapping(target = "status", ignore = true)
+	@Mapping(target ="certification", expression = "java(getFirstCertification(tmdbMovie))")
+	@Mapping(target ="releaseDate" , expression = "java(getFirstReleaseDate(tmdbMovie))" )
+    MovieDTO tmdbReleaseToMovieDto(TmdbMovieReleaseDateResponse tmdbMovie);
+	List<MovieDTO> tmdbReleaseDateToMovieDto(List<TmdbMovieReleaseDateResponse> tmdbmovies);
+	
+	// 헬퍼 메서드
+    default String getFirstCertification(TmdbMovieReleaseDateResponse tmdbMovie) {
+        if (tmdbMovie.getReleaseDates() == null || tmdbMovie.getReleaseDates().isEmpty()) {
+            return null;
+        }
+        return tmdbMovie.getReleaseDates().get(0).getCertification();
+    }
+
+    default String getFirstReleaseDate(TmdbMovieReleaseDateResponse tmdbMovie) {
+        if (tmdbMovie.getReleaseDates() == null || tmdbMovie.getReleaseDates().isEmpty()) {
+            return null;
+        }
+        return tmdbMovie.getReleaseDates().get(0).getReleaseDate();
+    }
+
 	
 	@Mapping(source = "providerId", target = "id")
 	@Mapping(source = "providerName", target = "name")
