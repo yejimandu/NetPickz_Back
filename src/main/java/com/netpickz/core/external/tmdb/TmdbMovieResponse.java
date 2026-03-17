@@ -13,6 +13,9 @@ public class TmdbMovieResponse {
 
 	private boolean adult;
 	
+	@JsonProperty("backdrop_path")
+	private String backdropPath;
+	
 	@JsonProperty("poster_path")
 	private String posterPath;
 	
