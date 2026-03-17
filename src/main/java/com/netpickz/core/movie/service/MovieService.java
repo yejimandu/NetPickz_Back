@@ -2,6 +2,7 @@ package com.netpickz.core.movie.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.api.movie.request.RatingRequest;
@@ -12,6 +13,7 @@ import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.TimeType;
 import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.MovieListPageDTO;
 import com.netpickz.core.movie.dto.RatingDTO;
 
 public interface MovieService {
@@ -20,26 +22,29 @@ public interface MovieService {
 
 	Optional<MovieDTO> getMovieInfoByMovieIdAndType(String movieId, AsyncType type);
 
-	Optional<List<MovieDTO>> getMovieListByTimeType(TimeType timeType);
+	CompletableFuture<List<MovieDTO>> getMovieListByTimeType(TimeType timeType);
 	
-	Optional<List<GenreDTO>> getMovieGenres(AsyncType type);
+	List<GenreDTO> getMovieGenres(AsyncType type);
 
-	Optional<List<CertificationDTO>> getMovieCertifications(AsyncType type);
+	List<CertificationDTO> getMovieCertifications(AsyncType type);
 
-	Optional<List<MovieDTO>> getMovieListByType(MovieCategory category);
+	CompletableFuture<List<MovieDTO>> getMovieListByType(MovieCategory category);
+//	List<MovieDTO> getMovieListByType(MovieCategory category);
 
-	Optional<List<ProviderDTO>> getProviders(AsyncType type);
+	List<ProviderDTO> getProviders(AsyncType type);
 
 	List<MovieDTO> getProviderByMovieId(String movieId);
-//	Optional<List<MovieDTO>> getProviderByMovieId(String movieId);
 
-	Optional<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId);
+	CompletableFuture<List<MovieDTO>> getMovieSimilarListByMovieId(String movieId);
 
-	Optional<List<MovieDTO>> getMovieListBySearch(String title);
+	CompletableFuture<MovieListPageDTO> getMovieListBySearch(String title, int page);
 
-	Optional<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest);
+	CompletableFuture<List<MovieDTO>> getMovieListByFilter(FilterRequest filterRequest);
 
 	Optional<RatingDTO> addRatingByUserId(String movieId, RatingRequest ratingRequest);
 
 	boolean deleteRatingByUserId(String movieId, String sessionId);
+
+	// TODO 추후 
+	List<MovieDTO> getMovieCertification(String id);
 }
