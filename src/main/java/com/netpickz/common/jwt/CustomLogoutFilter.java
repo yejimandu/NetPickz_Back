@@ -1,11 +1,15 @@
 package com.netpickz.common.jwt;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.GenericFilterBean;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.api.auth.request.AccessTokenRequest;
 import com.netpickz.common.constants.Constants;
+import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.core.auth.service.AuthService;
 
 import jakarta.servlet.FilterChain;
@@ -23,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomLogoutFilter extends GenericFilterBean{
 
 	private final AuthService authService;
+	private final ObjectMapper objectMapper;
 	
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -37,7 +42,8 @@ public class CustomLogoutFilter extends GenericFilterBean{
 		log.debug("CustomLogoutFilter 호출. path={}, method={}", request.getRequestURI(), request.getMethod());
 		// 1. 패스 체크
 		var requestMethod  = request.getMethod();
-		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
+//		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
+		if(!(request.getRequestURI().equals("/auth/logout") && requestMethod.equals("POST"))) {
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -65,5 +71,15 @@ public class CustomLogoutFilter extends GenericFilterBean{
         response.addCookie(cookie);
         
         response.setStatus(HttpServletResponse.SC_OK);
+	    response.setContentType("application/json");
+	    response.setCharacterEncoding("UTF-8");
+	    
+	    var apiResponse = ApiResponse.builder()
+				.success(true)
+				.timeStamp(LocalDateTime.now())
+				.status(HttpStatus.OK.value())
+				.build();
+	    
+	    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
 	}
 }

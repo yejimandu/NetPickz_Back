@@ -1,13 +1,21 @@
 package com.netpickz.common.entity;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.netpickz.core.movie.entity.MovieInfoEntity;
+import com.netpickz.core.movie.entity.MovieProviderEntity;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,4 +45,11 @@ public class CertificationEntity {
 	@Column(name="created_at", nullable = false)
     @UpdateTimestamp
 	private Timestamp createdAt;
+	
+	
+	@OneToMany(mappedBy = "certificationEntity", cascade = CascadeType.ALL, orphanRemoval = true
+			,fetch = FetchType.LAZY)
+	private List<MovieInfoEntity> movies = new ArrayList();
+	
+	
 }
