@@ -1,10 +1,12 @@
 package com.netpickz.api.movie;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.api.movie.request.RatingRequest;
+import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;
@@ -24,6 +27,7 @@ import com.netpickz.common.enumType.MovieCategory;
 import com.netpickz.common.enumType.SortType;
 import com.netpickz.common.enumType.TimeType;
 import com.netpickz.core.movie.dto.MovieDTO;
+import com.netpickz.core.movie.dto.MovieListPageDTO;
 import com.netpickz.core.movie.dto.RatingDTO;
 import com.netpickz.core.movie.service.MovieService;
 
@@ -69,23 +73,33 @@ public class MovieController {
 		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
 	}
 	
+	// TODO 영화 관람등급 및 출시일 날 조회 api ( 추후 getMovieInfo api랑 합칠 계획)
+	@Operation(summary = "특정 영화 관람등급 조회", description = "영화 ID 기준으로 해당 영화의 관람 등급을 조회합니다.")
+	@Parameter(name = "movieId", required = true, description = "영화 ID")
+	@GetMapping("/{id}/certification")
+	public ResponseEntity<List<MovieDTO>> getMovieCertificationByMovieId(   
+			@PathVariable(name = "id") String id) {
+		var movieDTOs = movieService.getMovieCertification(id);
+		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs);
+	}
+	
+	
 	@Operation(summary = "타입별 영화 목록 조회", description = "원하는 영화 목록을 조회합니다.")
 	@Parameter(name = "category" , description = "영화 카테고리")
 	@GetMapping("/category")
-	public ResponseEntity<List<MovieDTO>> getMovieList(   
+	public CompletableFuture<ResponseEntity<List<MovieDTO>>> getMovieList(   
 		    @RequestParam(name = "category") MovieCategory category) {
-		var movieDTOs =  movieService.getMovieListByType(category);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
+		 return movieService.getMovieListByType(category)
+			        .thenApply(ResponseEntity::ok);
 	}
 	
 	@Operation(summary = "일간, 주간 기준으로 인기 영화 목록 조회", description = "일간, 주간 기준으로 원하는 영화 목록을 조회합니다.")
 	@Parameter(name = "type" , description = "시간기준")
 	@GetMapping("/trending")
-	public ResponseEntity<List<MovieDTO>> getMovieListByTime(   
+	public CompletableFuture<ResponseEntity<List<MovieDTO>>> getMovieListByTime(   
 		    @RequestParam(name = "type") TimeType timeType) {
-		System.out.println("getMovieListByTime");
-		var movieDTOs =  movieService.getMovieListByTimeType(timeType);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
+		return movieService.getMovieListByTimeType(timeType)
+				.thenApply(ResponseEntity::ok);
 	}
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "원하는 영화를 시청할 수 있는 OTT 목록을 조회합니다.")
@@ -100,10 +114,10 @@ public class MovieController {
 	@Operation(summary = "비슷한 영화 목록 조회", description = "영화 ID 기준으로 비슷한 영화 목록을 조회합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@GetMapping("/{movieId}/similar")
-	public ResponseEntity<List<MovieDTO>> getMovieSimilarListByMovieId(   
+	public CompletableFuture<ResponseEntity<List<MovieDTO>>> getMovieSimilarListByMovieId(   
 			@PathVariable(name = "movieId") String movieId) {
-		var movieDTOs = movieService.getMovieSimilarListByMovieId(movieId);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs.orElse(null));
+		return movieService.getMovieSimilarListByMovieId(movieId)
+				.thenApply(ResponseEntity::ok);
 	}
 	
 	@Operation(summary = "영화 장르 목록 조회", description = "영화 장르 목록을 조회합니다.")
@@ -112,7 +126,7 @@ public class MovieController {
 	public ResponseEntity<List<GenreDTO>> getGenreList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var genres = movieService.getMovieGenres(type);
-		return ResponseEntity.status(HttpStatus.OK).body(genres.orElse(null));
+		return ResponseEntity.status(HttpStatus.OK).body(genres);
 	}
 	
 	@Operation(summary = "영화 관람 등급 목록 조회", description = "영화 관람 등급 목록을 조회합니다.")
@@ -121,7 +135,7 @@ public class MovieController {
 	public ResponseEntity<List<CertificationDTO>> getCertificationList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var certifications = movieService.getMovieCertifications(type);
-		return ResponseEntity.status(HttpStatus.OK).body(certifications.orElse(null));
+		return ResponseEntity.status(HttpStatus.OK).body(certifications);
 	}
 	
 	@Operation(summary = "영화 제공업자 목록 조회", description = "영화 제공업자 목록을 조회합니다.")
@@ -130,7 +144,7 @@ public class MovieController {
 	public ResponseEntity<List<ProviderDTO>> getProviderList(
 			@RequestParam(name = "asynType") AsyncType type) {
 		var providers = movieService.getProviders(type);
-		return ResponseEntity.status(HttpStatus.OK).body(providers.orElse(null));
+		return ResponseEntity.status(HttpStatus.OK).body(providers);
 	}
 	
 	// TODO
@@ -161,33 +175,20 @@ public class MovieController {
     @Operation(summary = "영화 간단 검색", description = "영화 제목 기준으로 영화를 검색합니다.")
     @Parameter(name = "title", required = true, description = "영화 제목")
     @GetMapping("/search")
-    public ResponseEntity<List<MovieDTO>> getSearchList(
-    		@RequestParam(name = "title") String title) {
-    	var movieDTO =  movieService.getMovieListBySearch(title);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
+    public CompletableFuture<ResponseEntity<MovieListPageDTO>> getSearchList(
+    		@RequestParam(name = "title") String title, @RequestParam(name = "page") int page) {
+    	return movieService.getMovieListBySearch(title, page)
+    			.thenApply(ResponseEntity::ok);
     }
     
-    // TODO 보완
 	@Operation(summary = "영화 필터 검색", description = "다양한 필터 기준으로 영화를 검색합니다.")
-	@Parameter(name = "page", required = false, description = "페이지번호")
-	@Parameter(name = "withGenres", description = "특정 장르 포함", example = "28,15")
-	@Parameter(name = "withPeople", description = "특정 인물이 출연 및 참여 포함" ,example = "홍길동" )
-	@Parameter(name = "sortBy", description = "정렬기준"  )
-	@Parameter(name = "includeAdult", description = "성인영화 포함 여부"  , example = "false")
-	@GetMapping("/search/multi")
-	public ResponseEntity<List<MovieDTO>> getSearchListTypeFilter(
-			@RequestParam(name="page") int pageNum,
-			@RequestParam(name="withGenres" , required = false) String withGenres,
-			@RequestParam(name="withPeople" , required = false) String withPeople,
-			@RequestParam(name="sortBy") SortType sortType,
-			@RequestParam(name="includeAdult") Boolean includeAdult
-			) {
-		var filterRequest = FilterRequest.builder().includeAdult(includeAdult).pageNum(pageNum).sortType(sortType);
-		if(StringUtils.isNotBlank(withGenres))filterRequest.withGenres(withGenres); 
-		if(StringUtils.isNotBlank(withPeople))filterRequest.withPeople(withPeople); 
-		
-		var movieDtos = movieService.getMovieListByFilter(filterRequest.build());	
-		return ResponseEntity.status(HttpStatus.OK).body(movieDtos.orElse(null));
+	@PostMapping("/search/multi")
+	public CompletableFuture<ResponseEntity<List<MovieDTO>>> getSearchListTypeFilter(
+			@org.springframework.web.bind.annotation.RequestBody FilterRequest request) {
+		return movieService.getMovieListByFilter(request)
+				.thenApply(ResponseEntity::ok);
 	}
+	
+	
 
 }
