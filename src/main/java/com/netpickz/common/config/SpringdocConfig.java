@@ -18,12 +18,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 		title = "NetPickz API 문서", 
 		version = "v1.0",
 		description = "AI 기반 영화 추천 플랫폼"))
-//@io.swagger.v3.oas.annotations.security.SecurityScheme(
-//	    name = "bearerAuth",
-//	    type = SecuritySchemeType.HTTP,
-//	    scheme = "bearer",
-//	    bearerFormat = "JWT"
-//	)
 public class SpringdocConfig {
 	
     @Bean
@@ -49,7 +43,6 @@ public class SpringdocConfig {
                                 .bearerFormat("JWT")
                         );
                 })
-
                 .build()
                 ;
     }

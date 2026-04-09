@@ -27,13 +27,16 @@ public enum ErrorCode {
 	// REFRESH_TOKEN
 	REFRESH_TOKEN_EXPIRED("TOKEN_201", "리프레쉬 토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED),
 	REFRESH_TOKEN_INVALID("TOKEN_202", "유효하지 않은 리프레쉬 토큰입니다.", HttpStatus.UNAUTHORIZED),
-	REFRESH_TOKEN_MALFORMED("TOKEN_203", "리프레쉬 토큰 형식이 올바르지 않습니다", HttpStatus.UNAUTHORIZED),
-	REFRESH_TOKEN_UNSUPPORTED("TOKEN_204", "지원하지 않는 리프레쉬 토큰 형식입니다", HttpStatus.UNAUTHORIZED),
-	REFRESH_TOKEN_NULL("TOKEN_205", "리프레쉬 토큰이 빈 값입니다.", HttpStatus.UNAUTHORIZED),
+	REFRESH_TOKEN_MALFORMED("TOKEN_203", "리프레쉬 토큰 형식이 올바르지 않습니다", HttpStatus.BAD_REQUEST),
+	REFRESH_TOKEN_UNSUPPORTED("TOKEN_204", "지원하지 않는 리프레쉬 토큰 형식입니다", HttpStatus.BAD_REQUEST),
+	REFRESH_TOKEN_NULL("TOKEN_205", "리프레쉬 토큰이 빈 값입니다.", HttpStatus.BAD_REQUEST),
 
+	LOGIN_FAIL("LOGIN_001", "로그인에 실패하였습니다. 아이디 비밀번호를 다시 확인 후 시도해주세요.", HttpStatus.BAD_REQUEST),
+
+	
 	MAIL_SEND_FAIL("MAIL_001", "메일 발송에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	MAIL_INVALID("MAIL_002", "잘못된 메일 주소입니다.", HttpStatus.BAD_REQUEST),
-	MAIL_VERIFY_FAIL("MAIL_003", "메일 인증에 실패했습니다.", HttpStatus.BAD_REQUEST),
+	MAIL_VERIFY_FAIL("MAIL_003", "메일 인증에 실패했습니다. 인증번호를 다시 확인해주세요.", HttpStatus.BAD_REQUEST),
 
 	REDIS_CONNECT_FAIL("REDIS_001", "레디스 연결에 실패했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
 
@@ -67,9 +70,10 @@ public enum ErrorCode {
 	
 	RATING_DELETE_FAILED("RATING_001", "평가 정보 삭제에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	RATING_ADD_FAILED("RATING_002", "평가 정보 저장에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+	RATING_NOT_FOUND("RATING_003", "평가 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
 	USER_NOT_FOUND("USER_001", "사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
-	USER_PASSWORD_INVALID("USER_002", "사용자 비밀번호가 유효하지 않습니다.", HttpStatus.BAD_GATEWAY),
+	USER_PASSWORD_INVALID("USER_002", "사용자 비밀번호가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
 
 	SESSION_NOT_FOUND("SESSION_001", "세션 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 

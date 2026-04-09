@@ -1,12 +1,15 @@
 package com.netpickz.core.session.service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.util.IdGenerator;
@@ -28,7 +31,7 @@ public class SessionServiceimpl implements SessionService {
 	private final SessionMapper sessionMapper;
 	private final TmdbClient tmdbClient;
 	private final SessionRepository sessionRepository;
-	
+
 	@Override
 	public Optional<SessionDTO> createSession(String userId) {
 		log.debug("Create Session. userId={}", userId);
@@ -60,4 +63,15 @@ public class SessionServiceimpl implements SessionService {
         log.info("Session Info Found. sessionId={}, userId={}", sessionDto.getSessionId(), sessionDto.getUserId());
         return Optional.of(sessionDto);
     }
+
+	@Override
+	public Optional<SessionDTO> getSessionInfo2(String userId) {
+		log.debug("Find Session Info. userId={}", userId);
+		var sessionDTO = sessionRepository.findByUserId(userId);
+		if(!sessionDTO.isPresent()) {
+			return createSession(userId);
+		}
+		var instant = Instant.parse(sessionDTO.get().getExpireDate());// TODO
+		return instant.isBefore(Instant.now()) ? createSession(userId) : sessionDTO;
+	}
 }

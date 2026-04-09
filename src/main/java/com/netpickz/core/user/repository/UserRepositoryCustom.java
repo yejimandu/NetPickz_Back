@@ -8,7 +8,7 @@ import com.netpickz.core.user.entity.UserInfoEntity;
 
 public interface UserRepositoryCustom {
 
-	Optional<UserDTO> findByUserId(String userId);
+	Optional<UserDTO> findByUserId(String userId); //
 
 	void  upsert(UserInfoEntity userInfo);
 

@@ -12,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
 
@@ -26,11 +27,19 @@ public class JWTUtil {
 	}
 	
 	public String getUsername(String token) {
-		return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
+		try {
+			return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
+		}catch (ExpiredJwtException e) {
+			return e.getClaims().get("username", String.class);
+		}
 	}
 	
 	public String getCategory(String token) {
-		return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+		try {
+			return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+		} catch (ExpiredJwtException  e) {
+			return e.getClaims().get("category", String.class);
+		}
 	}
 	
 	public Boolean isExpired(String token) {
