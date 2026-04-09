@@ -43,8 +43,10 @@ public interface MovieService {
 
 	Optional<RatingDTO> addRatingByUserId(String movieId, RatingRequest ratingRequest);
 
-	boolean deleteRatingByUserId(String movieId, String sessionId);
+	boolean deleteRatingByUserId(String movieId, String userId);
 
 	// TODO 추후 
 	List<MovieDTO> getMovieCertification(String id);
+
+	Optional<RatingDTO> getRatingByUserId(String movieId, String userId);
 }

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.core.movie.entity.MovieEntity;
+import com.netpickz.core.movie.entity.MovieInfoEntity;
 import com.netpickz.core.user.entity.pk.UserRatingInfoPK;
 
 import jakarta.persistence.Column;
@@ -36,7 +37,7 @@ public class UserRatingInfoEntity {
 	@ManyToOne
 	@MapsId("movieId")
     @JoinColumn(name = "movie_id", nullable = false)
-    private MovieEntity movieEntity;
+	private MovieEntity movieEntity;
 	
 //	@OneToOne
 	@ManyToOne
