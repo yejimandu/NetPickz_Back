@@ -12,5 +12,5 @@ public class TmdbMovieRequest extends TmdbListRequest{
 	private Integer movieId;
 	private Double rating;
 	private String sessionId;
-	private String guestSessionId;
+//	private String guestSessionId;
 }

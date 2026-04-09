@@ -23,4 +23,6 @@ public class RatingDTO {
 	@Schema(description = "사용자의 세션아이디", example = "c482d79f1152ade383fe3c2a65d31cbd" , required = true)
 	private String sessionId;
 
+	private String title;
+	private String posterPath;
 }
