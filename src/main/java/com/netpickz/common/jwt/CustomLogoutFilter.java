@@ -58,28 +58,31 @@ public class CustomLogoutFilter extends GenericFilterBean{
 		}
 		var tokens = token.split("Bearer ");
 		var accessToken = tokens[1];
-	
+		
 		// 3. 로그아웃 처리
-		authService.userLogout(AccessTokenRequest.builder()
+		var result = authService.userLogout(AccessTokenRequest.builder()
 								.accessToken(accessToken)
-								.build());
-
-        //4. cookie 값 초기화
-        Cookie cookie = new Cookie(Constants.REFRESH, "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        
-        response.setStatus(HttpServletResponse.SC_OK);
-	    response.setContentType("application/json");
-	    response.setCharacterEncoding("UTF-8");
-	    
-	    var apiResponse = ApiResponse.builder()
-				.success(true)
-				.timeStamp(LocalDateTime.now())
-				.status(HttpStatus.OK.value())
-				.build();
-	    
-	    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+								.build(), request);
+		
+		if(Constants.LOGOUT_SUCCESS.equals(result)) {
+	        //4. cookie 값 초기화
+	        Cookie cookie = new Cookie(Constants.REFRESH, "");
+	        cookie.setMaxAge(0);
+	        cookie.setPath("/");
+	        response.addCookie(cookie);
+	        
+	        response.setStatus(HttpServletResponse.SC_OK);
+		    response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+		    
+		    var apiResponse = ApiResponse.builder()
+					.success(true)
+					.timeStamp(LocalDateTime.now())
+					.status(HttpStatus.OK.value())
+					.message(result)
+					.build();
+		    
+		    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+		}
 	}
 }

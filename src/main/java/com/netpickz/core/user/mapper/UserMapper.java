@@ -28,8 +28,17 @@ public interface UserMapper {
 	 @Mapping(target = "movieId", ignore = true)
 	 UserDTO userToUserDTO(UserInfoEntity userInfoEntity);
 	 
+//	 @Mapping(source = "userEntity.userId", target = "userId")
+//	 @Mapping(source = "movieEntity.movieId", target = "movieId")
+//	 RatingDTO userToUserDTO(UserRatingInfoEntity UserRatingInfoEntity);
+//	 List<RatingDTO> userToUserDTO(List<UserRatingInfoEntity> UserRatingInfoEntitys );
+	 
+	 
 	 @Mapping(source = "userEntity.userId", target = "userId")
 	 @Mapping(source = "movieEntity.movieId", target = "movieId")
-	 RatingDTO userToUserDTO(UserRatingInfoEntity UserRatingInfoEntity);
-	 List<RatingDTO> userToUserDTO(List<UserRatingInfoEntity> UserRatingInfoEntitys );
+	 @Mapping(source = "movieEntity.title", target = "title")
+	 @Mapping(source = "movieEntity.movieInfo.posterPath", target = "posterPath")
+	 RatingDTO entityToDTO(UserRatingInfoEntity UserRatingInfoEntity);
+	 List<RatingDTO> entityToDTO(List<UserRatingInfoEntity> UserRatingInfoEntitys );
+	 
 }

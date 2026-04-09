@@ -20,7 +20,7 @@ public class CorsConfig {
         var configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 허용할 Origin
 //        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 Origin
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
         configuration.setAllowCredentials(true); // 쿠키/인증정보 포함 허용
 

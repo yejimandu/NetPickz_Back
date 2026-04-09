@@ -1,5 +1,7 @@
 package com.netpickz.core.user.dto;
 
+import java.sql.Timestamp;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,4 +34,6 @@ public class UserDTO {
 	private String state;
 
 	private String password;
+	
+	private Timestamp createdAt;
 }

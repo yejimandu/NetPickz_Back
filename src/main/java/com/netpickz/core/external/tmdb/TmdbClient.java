@@ -272,13 +272,11 @@ public class TmdbClient  {
 				.uri(uriBuilder -> uriBuilder
 						.path("/movie/{movie_id}/rating")
 						.queryParam("api_key", apiKey)
-						.queryParam("language", "ko-KR")
+						.queryParam("guest_session_id", request.getSessionId())
 						.build(request.getMovieId()))
-				.bodyValue(Map.of("guest_session_id", request.getGuestSessionId()))
 				.retrieve()
 				.toEntity(TmdbRatingResponse.class)
 				.block();
-				//				.body(BodyInserters.fromValue(Map.of("session_id", request.getSessionId())))
 	} 
 	
 	public ResponseEntity<TmdbMovieResponse> ratingListByUser(TmdbMovieRequest request) {

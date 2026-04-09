@@ -37,7 +37,7 @@ public class MovieInfoEntity {
 	@JoinColumn(name = "movie_id")
 	private MovieEntity movieEntity;
 	
-	@Column(length = 500)
+	@Column(length = 1000)
 	private String overView ;
 	
 	@Column

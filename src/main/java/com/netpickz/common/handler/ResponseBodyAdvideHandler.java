@@ -65,7 +65,7 @@ public class ResponseBodyAdvideHandler implements ResponseBodyAdvice<Object>{
 				throw new RuntimeException("JSON 변환 실패", e);
 			}
 		 }
-		 System.out.println("ResponseBodyAdvideHandler beforeBodyWrite apiResponse : "+ apiResponse.toString());
+		 log.debug("ResponseBodyAdvideHandler beforeBodyWrite apiResponse : ", apiResponse.toString());
 		return apiResponse;
 	}
 
