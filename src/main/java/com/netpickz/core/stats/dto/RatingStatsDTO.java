@@ -1,4 +1,5 @@
-package com.netpickz.common.dto;
+package com.netpickz.core.stats.dto;
+
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -12,8 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
-@Schema(description = "영화 장르 정보를 담고 있는 클래스")
-public class CommonDTO {
-	private String message;
-	private boolean status;
+@Schema(description = "평점 통계 정보를 담고 있는 클래스")
+public class RatingStatsDTO {
+
+	private int yearCount;
+	private int monthCount;
+	private int weekCount;
+	private int dayCount;
 }

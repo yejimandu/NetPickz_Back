@@ -25,11 +25,11 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
 	@Override
 	public Optional<UserDTO> findByUserId(String userId) {
-		UserInfoEntity userInfo = queryFactory
+		var userInfo = queryFactory
 				.selectFrom(userInfoEntity)
 				.join(userInfoEntity.userEntity, userEntity)
 				.fetchJoin()
-				.where(userEntity.userId.eq(userId))
+				.where(userIdEq(userId), isActive())
 				.fetchOne();
 		
 		return Optional.ofNullable(userInfo)
@@ -39,11 +39,26 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 	@Override
 	@Transactional
 	public void upsert(UserInfoEntity userInfo) {
-		queryFactory
-		.update(userInfoEntity)
-		.set(userInfoEntity.name ,userInfo.getName())
-		.where(userIdEq(userInfo.getUserId()))
-		.execute();
+		var update = queryFactory.update(userInfoEntity);
+		
+		if(userInfo.getName() != null && !userInfo.getName().isBlank()) {
+			update.set(userInfoEntity.name, userInfo.getName());
+		}
+		if(userInfo.getEmail() != null && !userInfo.getEmail().isBlank()) {
+			update.set(userInfoEntity.email, userInfo.getEmail());
+		}
+		if(userInfo.getPassword() != null && !userInfo.getPassword().isBlank()) {
+			update.set(userInfoEntity.password, userInfo.getPassword());
+		}
+		// TODO
+		if(userInfo.isEmailVerified()) {
+			update.set(userInfoEntity.emailVerified, userInfo.isEmailVerified());
+		}
+		if(!update.isEmpty()) {
+			update
+			.where(userIdEq(userInfo.getUserId()))
+			.execute();
+		}
 	}
 
 	@Override
@@ -74,5 +89,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 		return StringUtils.hasText(email) ? userInfoEntity.email.eq(email) : null;
 	}
 
-	
+	private BooleanExpression isActive() {
+		return userInfoEntity.state.eq(StateType.정상);
+	}
 }

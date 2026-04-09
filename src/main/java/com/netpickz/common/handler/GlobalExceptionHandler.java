@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.dto.LogDTO;
 import com.netpickz.common.enumType.ErrorCode;
@@ -31,14 +31,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final ObjectMapper objectMapper;
 	
 	private final LogService logService;
 	private final JWTUtil jwtUtil;
 	
-	public GlobalExceptionHandler(LogService logService,  JWTUtil jwtUtil) {
+	public GlobalExceptionHandler(LogService logService,  JWTUtil jwtUtil, ObjectMapper objectMapper) {
 		super();
 		this.logService = logService;
 		this.jwtUtil = jwtUtil;
+		this.objectMapper = objectMapper;
 	}
 	
 	// TODO JWTEXCEPTION 확인
@@ -70,6 +73,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(NetPickzException.class)
 	public ResponseEntity<ApiResponse<Object>> handlerNetPickzException ( HttpServletRequest request, NetPickzException  e ) {
 		//TODO 추가 ㅂ완 필요
+		System.out.println("handlerNetPickzException :  " + request.getHeader("Authorization"));
 		return buildResponse(request, e.getErrorCode(), e);
 	}
 	
@@ -110,8 +114,7 @@ public class GlobalExceptionHandler {
 		 				.build()
         		);
 		log.info("GlobalExceptionHandler handlerException apiResponse : " + apiResponse.toString() );
-		if(!request.getRequestURI().contains("logout") || !request.getRequestURI().contains("login")) { 
-			var userId = jwtUtil.getUsername(request.getHeader("Authorization").substring(7));
+		var userId = request.getAttribute("userId").toString();
 			logService.save(LogDTO.builder()
 					.serviceName(request.getClass().getName()) 
 					.path(request.getRequestURI()) 
@@ -123,7 +126,6 @@ public class GlobalExceptionHandler {
 					.message(errorCode.getMsg())
 					.userId(userId)
 					.build());
-		}
         return apiResponse;
 	} 
 }
