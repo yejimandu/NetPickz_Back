@@ -24,4 +24,7 @@ public class UserRequest {
 	@Schema(description = "사용자 비밀번호", example = "hongGuk!@34532")
 	private String password;
 	
+	private Boolean emailVerified;
+	
+	private String newPassword;
 }

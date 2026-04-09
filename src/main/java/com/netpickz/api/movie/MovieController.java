@@ -3,10 +3,9 @@ package com.netpickz.api.movie;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,13 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netpickz.api.movie.request.FilterRequest;
 import com.netpickz.api.movie.request.RatingRequest;
-import com.netpickz.api.user.request.UserRequest;
 import com.netpickz.common.dto.CertificationDTO;
 import com.netpickz.common.dto.GenreDTO;
 import com.netpickz.common.dto.ProviderDTO;
 import com.netpickz.common.enumType.AsyncType;
 import com.netpickz.common.enumType.MovieCategory;
-import com.netpickz.common.enumType.SortType;
 import com.netpickz.common.enumType.TimeType;
 import com.netpickz.core.movie.dto.MovieDTO;
 import com.netpickz.core.movie.dto.MovieListPageDTO;
@@ -158,17 +155,26 @@ public class MovieController {
 		var rationDto =  movieService.addRatingByUserId(movieId, request);
 		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(null));
 	}
+
+	@Operation(summary = "영화 평가 조회", description = "사용자 ID 기준으로 영화 평가를 조회합니다.")
+	@Parameter(name = "movieId", required = true, description = "영화 ID")
+	@GetMapping("/{movieId}/rating")
+	public ResponseEntity<RatingDTO> getRating(
+			@PathVariable(name="movieId") String movieId, Authentication authentication) {
+		// TODO
+		var userId = authentication.getName();
+		var rationDto = movieService.getRatingByUserId(movieId, userId);
+		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(null));
+	}
 	
-	// TODO
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@Parameter(name = "sessionId", required = true, description = "세션아이디")
 	@DeleteMapping("/{movieId}/rating")
 	public ResponseEntity<Boolean> deleteRating(
 			@PathVariable(name = "movieId") String movieId,
-			@RequestParam(name="sessionId") String sessionId) {
-		// TODO
-		 var flag =  movieService.deleteRatingByUserId(movieId, sessionId);
+			Authentication authentication) {
+		var userId = authentication.getName();
+		var flag =  movieService.deleteRatingByUserId(movieId, userId);
 		return  new ResponseEntity<>(flag, HttpStatus.OK);
 	}
 	
