@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netpickz.common.constants.Constants;
 import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.enumType.ErrorCode;
+import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.core.auth.dto.TokenDTO;
 import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.user.entity.UserInfoEntity;
@@ -72,7 +73,7 @@ public class JWTFilter extends OncePerRequestFilter{
 		}
 		var tokens = token.split("Bearer ");
 		var accessToken = tokens[1];
-		if(accessToken == null) {
+		if(accessToken.length() < 2) {
 			log.debug("accessToken no, next filter. token={}", token);
 			filterChain.doFilter(request, response);
 			sendErrorResponse(response, ErrorCode.TOKEN_MISSING);
@@ -88,21 +89,25 @@ public class JWTFilter extends OncePerRequestFilter{
 		            .findFirst()
 		            .orElse(null); 
 	    }
-	
-		// 토큰 만료 여부 확인
-		try {
+	    
+	    try {
 			jwtUtil.isExpired(accessToken);
-		}catch (ExpiredJwtException e) {
-			 System.out.println("Access 토큰 만료, 재발급 시도");
-			 
-			 log.debug("Expired Jwt. Reissue to Token. accessToken={}", accessToken);
-			 handleTokenReissue(refresh , response); //
-//			 return;
+		} catch (ExpiredJwtException e) {
+			var category = jwtUtil.getCategory(accessToken);
+			if(Constants.RESET_TOKEN.equals(category)) {
+				log.debug(" access 토큰 만료. 재발급 링크 만료");
+				log.debug("Expired Jwt. accessToken={}", accessToken);
+				sendErrorResponse(response, ErrorCode.TOKEN_EXPIRED);
+			} else {
+				log.debug(" access 토큰 만료. 재발급 시도");
+				log.debug("Expired Jwt. Reissue to Token. accessToken={}", accessToken);
+				handleTokenReissue(refresh , request,response); 
+			}
+			return;
 		}
-		
-		// 토큰이 access 인지 체크
-		var category = jwtUtil.getCategory(accessToken);
-		if(!Constants.ACCESS.equals(category)) {
+	    
+	    var category = jwtUtil.getCategory(accessToken);
+	    if(!Constants.ACCESS.equals(category) && !Constants.RESET_TOKEN.equals(category)) {
 			// response body 
 			var writer = response.getWriter();
 			writer.print("invalid access token");
@@ -110,8 +115,9 @@ public class JWTFilter extends OncePerRequestFilter{
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}
-		
+	    
 		var username = jwtUtil.getUsername(accessToken);
+		request.setAttribute("userId", username);
 		if(!Constants.GUEST_TYPE.equals(username)) {
 			// userInfoEntity 생성해서 값 set
 			var userInfoEntiy = UserInfoEntity.builder().userId(username).build();
@@ -126,13 +132,13 @@ public class JWTFilter extends OncePerRequestFilter{
 		filterChain.doFilter(request, response);
 	}
 
-
-	private void handleTokenReissue(String refresh, HttpServletResponse response) throws IOException {
+	private void handleTokenReissue(String refresh, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		try {
-			var tokens = authService.reissueTokens(refresh);
-			// 성공 응답
-			sendSuccessResponse(response, tokens);
-//			return;
+			var tokens = authService.reissueTokens(refresh, request);
+			response.setHeader("Authorization", "Bearer " + tokens.getAccessToken());
+			response.addHeader("Set-Cookie", tokens.getCookie().toString());
+			sendErrorResponse(response,  ErrorCode.ACCESS_TOKEN_EXPIRED); 
+			return;
 		}catch (ExpiredJwtException  f) {
 			// response body 
 			var writer = response.getWriter();
@@ -140,13 +146,13 @@ public class JWTFilter extends OncePerRequestFilter{
 			// response status
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
-		}
+		}catch (NetPickzException e) {
+	        sendErrorResponse(response, e.getErrorCode()); // ← 추가
+	    }
 	}
 
 	private void sendSuccessResponse(HttpServletResponse response, TokenDTO tokens) throws JsonProcessingException, IOException {
 		response.setHeader("Authorization", "Bearer " + tokens.getAccessToken());
-//		response.setHeader("Authorization", tokens.getAccessToken());
-		
 		
 //		response.setHeader("access", tokens.getAccessToken());
 		// ✅ JSON 응답 (Controller와 동일한 형식)
@@ -158,13 +164,14 @@ public class JWTFilter extends OncePerRequestFilter{
 	    var apiResponse = ApiResponse.builder()
 				.success(true)
 				.timeStamp(LocalDateTime.now())
-				.data(tokens)
+				.data(tokens.getAccessToken())
 				.status(HttpStatus.OK.value())
 				.build();
 	   log.info("JWTFilter sendSuccessResponse apiResponse:{} " , apiResponse.toString());
 	    response.getWriter().write(mapper.writeValueAsString(apiResponse));
 	}
 
+	// TODO
 	private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws JsonProcessingException, IOException {
 	    response.setStatus(errorCode.getStatus().value());
 	    response.setContentType("application/json");
