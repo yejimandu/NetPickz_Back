@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.netpickz.api.mail.request.MailRequest;
 import com.netpickz.api.mail.request.MailVerifyRequest;
 import com.netpickz.core.mail.MailService;
+import com.netpickz.core.user.dto.UserDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,8 +29,10 @@ public class MailController {
 	@Operation(summary = "이메일 인증 코드", description = "이메일 인증 코드 발송합니다.")
 	@PostMapping("/send")
 	public ResponseEntity<String> sendEmail(
-			@org.springframework.web.bind.annotation.RequestBody MailRequest mailRequest, HttpServletRequest request ) {
-//		request.setAttribute("userId", username);
+			@org.springframework.web.bind.annotation.RequestBody MailRequest mailRequest, Authentication authentication,
+			HttpServletRequest request ) {
+		var userId = authentication.getName();
+		request.setAttribute("userId", userId);
 		var msg = mailService.sendCode(mailRequest.getEmail());
 		return ResponseEntity.ok(msg);
 	}
@@ -46,9 +49,11 @@ public class MailController {
 	@Operation(summary = "비밀번호 재설정 링크 발송", description = "비밀번호 재설정 링크를 발송합니다.")
 	@PostMapping("/pw/send")
 	public ResponseEntity<String> pwChgSendEmail(
-			@org.springframework.web.bind.annotation.RequestBody MailRequest request, Authentication authentication) {
-		var userId = authentication.getName();
-		var msg = mailService.sendPwChgUrl(request.getEmail(), userId);
+			@org.springframework.web.bind.annotation.RequestBody MailRequest mailRequest, Authentication authentication, 
+			HttpServletRequest request) {
+		var userId = authentication != null ? authentication.getName() : null;
+		var userdto = UserDTO.builder().email(mailRequest.getEmail()).userId(userId).build();
+		var msg = mailService.sendPwChgUrl(userdto, request);
 		return ResponseEntity.ok(msg);
 	}
 	

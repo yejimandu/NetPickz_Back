@@ -38,11 +38,9 @@ public class CustomLogoutFilter extends GenericFilterBean{
 	private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws IOException, ServletException {
 	     //path and method verify 
-		// TODO 테스트 필요
 		log.debug("CustomLogoutFilter 호출. path={}, method={}", request.getRequestURI(), request.getMethod());
 		// 1. 패스 체크
 		var requestMethod  = request.getMethod();
-//		if(!request.getRequestURI().equals("^\\\\/logout$") || !requestMethod.equals("POST")) {
 		if(!(request.getRequestURI().equals("/auth/logout") && requestMethod.equals("POST"))) {
 			filterChain.doFilter(request, response);
 			return;

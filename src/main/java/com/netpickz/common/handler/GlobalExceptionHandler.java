@@ -11,11 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.netpickz.common.dto.ApiResponse;
 import com.netpickz.common.dto.LogDTO;
 import com.netpickz.common.enumType.ErrorCode;
-import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.core.log.service.LogService;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -32,16 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private final ObjectMapper objectMapper;
-	
 	private final LogService logService;
-	private final JWTUtil jwtUtil;
 	
-	public GlobalExceptionHandler(LogService logService,  JWTUtil jwtUtil, ObjectMapper objectMapper) {
+	public GlobalExceptionHandler(LogService logService) {
 		super();
 		this.logService = logService;
-		this.jwtUtil = jwtUtil;
-		this.objectMapper = objectMapper;
 	}
 	
 	// TODO JWTEXCEPTION 확인
@@ -72,7 +66,6 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(NetPickzException.class)
 	public ResponseEntity<ApiResponse<Object>> handlerNetPickzException ( HttpServletRequest request, NetPickzException  e ) {
-		//TODO 추가 ㅂ완 필요
 		System.out.println("handlerNetPickzException :  " + request.getHeader("Authorization"));
 		return buildResponse(request, e.getErrorCode(), e);
 	}
@@ -83,19 +76,19 @@ public class GlobalExceptionHandler {
 		var status = e.getStatusCode();
 		if(status == HttpStatus.FORBIDDEN) {
 			return buildResponse(request, ErrorCode.TMDB_FORBIDDEN, e);
-		}else if(status == HttpStatus.BAD_GATEWAY) {
+		} else if(status == HttpStatus.BAD_GATEWAY) {
 			return buildResponse(request, ErrorCode.TMDB_BAD_GATEWAY, e);
-		}else if(status == HttpStatus.BAD_REQUEST) {
+		} else if(status == HttpStatus.BAD_REQUEST) {
 			return buildResponse(request, ErrorCode.TMDB_BAD_REQUEST, e);
-		}else if(status == HttpStatus.GATEWAY_TIMEOUT) {
+		} else if(status == HttpStatus.GATEWAY_TIMEOUT) {
 			return buildResponse(request, ErrorCode.TMDB_GATEWAY_TIMEOUT, e);
-		}else if(status == HttpStatus.UNAUTHORIZED) {
+		} else if(status == HttpStatus.UNAUTHORIZED) {
 			return buildResponse(request, ErrorCode.TMDB_UNAUTHORIZED, e);
-		}else if(status == HttpStatus.SERVICE_UNAVAILABLE) {
+		} else if(status == HttpStatus.SERVICE_UNAVAILABLE) {
 			return buildResponse(request, ErrorCode.TMDB_SERVICE_UNAVAILABLE, e);
-		}else if(status == HttpStatus.NOT_FOUND) {
+		} else if(status == HttpStatus.NOT_FOUND) {
 			return buildResponse(request, ErrorCode.TMDB_NOT_FOUND, e);
-		}else if(status == HttpStatus.TOO_MANY_REQUESTS) {
+		} else if(status == HttpStatus.TOO_MANY_REQUESTS) {
 			return buildResponse(request, ErrorCode.TMDB_TOO_MANY_REQUESTS, e);
 		}
 		return buildResponse(request, ErrorCode.TMDB_SERVER_ERROR, e);
@@ -104,28 +97,27 @@ public class GlobalExceptionHandler {
 	private ResponseEntity<ApiResponse<Object>> buildResponse ( HttpServletRequest request, ErrorCode errorCode, Exception e) {
 		var apiResponse = ResponseEntity
         		.status(errorCode.getStatus())
-        		.body(
-	        		 ApiResponse.builder()
+        		.body(ApiResponse.builder()
 		 				.success(false)
 		 				.message(errorCode.getMsg())
 		 				.code(errorCode.getCode())
 		 				.timeStamp(LocalDateTime.now())
 		 				.status(errorCode.getStatus().value())
-		 				.build()
-        		);
+		 				.build());
+		
 		log.info("GlobalExceptionHandler handlerException apiResponse : " + apiResponse.toString() );
 		var userId = request.getAttribute("userId").toString();
-			logService.save(LogDTO.builder()
-					.serviceName(request.getClass().getName()) 
-					.path(request.getRequestURI()) 
-					.method(request.getMethod().toString()) 
-					.ipAddress(request.getRemoteAddr()) 
-					.stackTrace(ExceptionUtils.getStackTrace(e))
-					.userAgent(request.getHeader("User-Agent"))
-					.statusCode(errorCode.getStatus().value())
-					.message(errorCode.getMsg())
-					.userId(userId)
-					.build());
+		logService.save(LogDTO.builder()
+				.serviceName(request.getClass().getName()) 
+				.path(request.getRequestURI()) 
+				.method(request.getMethod().toString()) 
+				.ipAddress(request.getRemoteAddr()) 
+				.stackTrace(ExceptionUtils.getStackTrace(e))
+				.userAgent(request.getHeader("User-Agent"))
+				.statusCode(errorCode.getStatus().value())
+				.message(errorCode.getMsg())
+				.userId(userId)
+				.build());
         return apiResponse;
 	} 
 }

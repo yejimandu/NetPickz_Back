@@ -144,14 +144,12 @@ public class MovieController {
 		return ResponseEntity.status(HttpStatus.OK).body(providers);
 	}
 	
-	// TODO
 	@Operation(summary = "영화 평가 등록", description = "사용자 ID 기준으로 영화 평가를 등록합니다.")
 	@Parameter(name = "movieId", required = true, description = "영화 ID")
 	@PostMapping("/{movieId}/rating")
 	public ResponseEntity<RatingDTO> addRating(
 			@PathVariable(name="movieId") String movieId,
 			@org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
-		// TODO
 		var rationDto =  movieService.addRatingByUserId(movieId, request);
 		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(null));
 	}
@@ -161,10 +159,9 @@ public class MovieController {
 	@GetMapping("/{movieId}/rating")
 	public ResponseEntity<RatingDTO> getRating(
 			@PathVariable(name="movieId") String movieId, Authentication authentication) {
-		// TODO
 		var userId = authentication.getName();
 		var rationDto = movieService.getRatingByUserId(movieId, userId);
-		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(null));
+		return ResponseEntity.status(HttpStatus.OK).body(rationDto.orElse(new RatingDTO()));
 	}
 	
 	@Operation(summary = "영화 평가 삭제", description = "사용자 ID 기준으로 영화 평가를 삭제합니다.")

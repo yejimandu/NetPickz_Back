@@ -8,5 +8,5 @@ public interface SessionService {
 
     Optional<SessionDTO> createSession(String userId);
     Optional<SessionDTO> getSessionInfo(String sessionId);
-	Optional<SessionDTO> getSessionInfo2(String userId);
+	Optional<SessionDTO> getOrCreateSessionInfo(String userId);
 }

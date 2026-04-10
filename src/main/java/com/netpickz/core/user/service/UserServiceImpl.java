@@ -1,5 +1,6 @@
 package com.netpickz.core.user.service;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
@@ -59,8 +60,7 @@ public class UserServiceImpl implements UserService {
 				.sessionId(request.getSessionId())
 				.movieEntity(MovieEntity.builder().movieId(movieId).build())
 				.userEntity(UserEntity.builder().userId(sessionDto.getUserId()).build())
-				.build()
-				);
+				.build());
 		
 		log.info("Rating saved: movieId={}, userId={}, rating={}", movieId, sessionDto.getUserId(), rating);
 		return Optional.ofNullable(RatingDTO.builder()
@@ -134,9 +134,9 @@ public class UserServiceImpl implements UserService {
 
 		var ratingDtos = userRatingInfoRepository.findRatingByUserId(userId, keyword,  pageable);
 		var result = PageDTO.<RatingDTO>builder()
-			.totalCount((int) ratingDtos.getTotalElements())
-			.totalPage(ratingDtos.getTotalPages())
-			.result(ratingDtos.getContent())
+			.totalCount(ratingDtos == null ? 0 : (int) ratingDtos.getTotalElements())
+			.totalPage(ratingDtos == null ? 0 : ratingDtos.getTotalPages())
+			.result(ratingDtos == null ? Collections.emptyList() : ratingDtos.getContent())
 		.build();
 		log.info("User Rating History info Found: userId={}, totalCount={}, totalPage={}", userId, result.getTotalCount(), result.getTotalPage());
 		return result;
@@ -159,9 +159,12 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Optional<RatingDTO> getRatingByUser(String movieId, String userId) {
 		log.debug("Find User Rating Info : movieId={}, userId={}" ,movieId, userId);
-		var userRatings = userRatingInfoRepository.findById(UserRatingInfoPK.builder().userId(userId).movieId(movieId).build())
-				.orElseThrow(() -> new NetPickzException(ErrorCode.RATING_NOT_FOUND));
-		var ratingDto = userMapper.entityToDTO(userRatings);
+		var userRatings = userRatingInfoRepository.findById(UserRatingInfoPK.builder().userId(userId).movieId(movieId).build());
+//				.orElseThrow(() -> new NetPickzException(ErrorCode.RATING_NOT_FOUND));
+		if(!userRatings.isPresent()) {
+			return Optional.empty();
+		}
+		var ratingDto = userMapper.entityToDTO(userRatings.get());
 		return Optional.ofNullable(ratingDto);
 	}
 
@@ -179,13 +182,26 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String passwordChange(String userId, String newPassword) {
-		log.debug("Reset User Password Info : userId={}, newPassword={}", userId, newPassword);
 		var msg = Constants.PASSWORD_RESET_FAIL;
+		log.debug("Reset User Password Info : userId={}, newPassword={}", userId, newPassword);
+		var user = getUserInfoByUserId(userId)
+				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
+		// 기존 비밀번호와 동일하면 에러
+		var matches = passwordEncoder.matches(newPassword, user.getPassword());
+		if(matches) {
+			log.error("Password change failed: new password matches current one. userId={}", userId);
+			throw new NetPickzException(ErrorCode.PASSWORD_SAME_AS_OLD );
+		}
 		var encodeNewPw = passwordEncoder.encode(newPassword);
-		var updatedUser = updateUser(UserRequest.builder().userId(userId).password(encodeNewPw).build());
-		if(updatedUser.isPresent()) {
-			msg = Constants.PASSWORD_RESET_SUCCESS;
-			redisTemplate.delete("pwReset:" + userId);
+		try {
+			var updatedUser = updateUser(UserRequest.builder().userId(userId).password(encodeNewPw).build());
+			if(updatedUser.isPresent()) {
+				redisTemplate.delete("pwReset:" + userId);
+				msg = Constants.PASSWORD_RESET_SUCCESS;
+			}
+		}catch (RedisException e) {
+			log.error("Fail to Connect Redis. pwReset:  userId={}, msg={}", userId, e.getMessage(), e);
+			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
 		}
 		return msg;
 	}
@@ -203,5 +219,12 @@ public class UserServiceImpl implements UserService {
 			log.error("Fail to Connect Redis. pwReset:  userId={}, token={}, msg={}", userId, token , e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
 		}
+	}
+
+	@Override
+	public Optional<UserDTO> getUserInfoByEmail(UserDTO userDTO) {
+		log.debug("Find user info By email: email={}" , userDTO.getEmail());
+		return userInfoRepository.findByEmail(userDTO)
+				.map(userMapper::userToUserDTO);
 	}
 }
