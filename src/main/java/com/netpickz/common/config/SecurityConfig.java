@@ -20,7 +20,6 @@ import com.netpickz.common.handler.CustomAccessDeniedHandler;
 import com.netpickz.common.handler.JwtAuthenticationEntryPoint;
 import com.netpickz.common.jwt.CustomLogoutFilter;
 import com.netpickz.common.jwt.JWTFilter;
-import com.netpickz.common.jwt.JWTUtil;
 import com.netpickz.common.jwt.LoginFilter;
 import com.netpickz.core.auth.service.AuthService;
 import com.netpickz.core.log.service.LogService;

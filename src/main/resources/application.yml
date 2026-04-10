@@ -48,3 +48,6 @@ tmdb:
   api:
     key : ${TMDB_API_KEY}
   url : ${TMDB_URL}
+
+app:
+  front-url: ${FRONT_URL}

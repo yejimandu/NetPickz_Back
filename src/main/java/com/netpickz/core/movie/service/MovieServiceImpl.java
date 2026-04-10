@@ -187,8 +187,10 @@ public class MovieServiceImpl implements MovieService {
 		    	    certCode = "19"; // 한국 기준 최신 등급으로 보정
 		    	}
 		    	var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+		    	var releasedFlag = LocalDate.parse(releaseDate, formatter).isBefore(LocalDate.now());
+		    	var statusType = releasedFlag ? MovieStatusType.Released.name() : MovieStatusType.Post_Production.name();
+	    		movieInfo.setStatus(statusType);
 		    	movieInfo.setReleaseDate(LocalDate.parse(releaseDate, formatter).toString());
-				movieInfo.setStatus(MovieStatusType.Released.name());
 				if(certCode != null && !certCode.isBlank())
 				movieInfo.setCertificationEntity(CertificationEntity.builder().certificationId(certCode).build()); // TODO
 		    }

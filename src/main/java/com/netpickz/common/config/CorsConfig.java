@@ -2,6 +2,7 @@ package com.netpickz.common.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,11 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class CorsConfig {
 
+	@Value("${app.front-url}")
+	String frontUrl;
+	
 	@Bean
     public CorsConfigurationSource corsConfigurationSource() {
 		
         var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 허용할 Origin
+        configuration.setAllowedOrigins(List.of(frontUrl)); // 허용할 Origin
+//        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // 허용할 Origin
 //        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 Origin
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
