@@ -32,47 +32,21 @@ public class SessionController {
             @RequestParam(name = "userId") String userId,  Authentication authentication) {
     	if(Constants.ME.equals(userId)) {
 			userId = authentication.getName();
-		} // TODO 
+		}
         var sessionDto =  sessionService.createSession(userId);
         return ResponseEntity.status(HttpStatus.OK).body(sessionDto.orElse(null));
 	}
 
-    @Operation(summary = "세션 아이디 조회", description = "userId 기준으로 tmdb 세션 아이디를 조회합니다.")
+    @Operation(summary = "세션 아이디 조회", description = "userId 기준으로 tmdb 세션 아이디를 조회합니다. 존재하지 않거나 만료된 경우 재발급하여 조회.")
     @Parameter(name = "userId", required = true, description = "tmdb 게스트 세션을 생성할 사용자 ID")
     @GetMapping("")
     public ResponseEntity<SessionDTO> getSession(
     		@RequestParam(name = "userId") String userId, Authentication authentication) {
     	if(Constants.ME.equals(userId)) {
     		userId = authentication.getName();
-    	} // TODO 
-    	
-    	var sessionDto =  sessionService.getSessionInfo2(userId);
-    	return ResponseEntity.status(HttpStatus.OK).body(sessionDto.orElse(null));
+    	} 
+    	var sessionDto =  sessionService.getOrCreateSessionInfo(userId);
+    	return ResponseEntity.ok(sessionDto.orElse(null));
     }
-    
-    
-	
-	// 1. 간단 구현은 해둠 그치만 보완 필요
-//	// 2. return 타입 정리 및 session pk 값을 쓸 값 고민  및 값 있는지 없는지 체크 후 있으 면 할당하는 로직 필요.
-//	@Operation(summary = "사용자 세션 생성", description = "Tmdb 테스트를 위한 테스트용 API")
-//	@GetMapping("/user")
-//	public ResponseEntity<SessionDTO> userSession() {
-//		var sessionDto = sessionService.createSession(SessionDTO.builder() 
-//	            .sessionType(SessionType.User)
-//	            .build());
-//		return  new ResponseEntity<>(sessionDto, HttpStatus.OK);
-//	}
-	
-	
-//	@Operation(summary = "세션 생성", description = "Tmdb 테스트를 위한 테스트용 API")
-//	@Parameter(name = "type" , description = "세션타입(사용자, 게스트)")
-//	@GetMapping("")
-//	public ResponseEntity<SessionDTO> userSession2(@RequestParam(name = "type") SessionType type) {
-//		var sessionDto = sessionService.createSession(SessionDTO.builder() 
-//	            .sessionType(type)
-//	            .build());
-//		return  new ResponseEntity<>(sessionDto, HttpStatus.OK);
-//	}
-	
-	
+
 }

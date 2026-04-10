@@ -2,14 +2,12 @@ package com.netpickz.core.session.service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.util.IdGenerator;
@@ -18,7 +16,7 @@ import com.netpickz.core.session.dto.SessionDTO;
 import com.netpickz.core.session.entity.SessionEntity;
 import com.netpickz.core.session.mapper.SessionMapper;
 import com.netpickz.core.session.repository.SessionRepository;
-import com.netpickz.core.user.entity.UserEntity;
+import com.netpickz.core.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +29,19 @@ public class SessionServiceimpl implements SessionService {
 	private final SessionMapper sessionMapper;
 	private final TmdbClient tmdbClient;
 	private final SessionRepository sessionRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public Optional<SessionDTO> createSession(String userId) {
 		log.debug("Create Session. userId={}", userId);
-		var tmdbSessionResponse =  tmdbClient.createGuestSession().getBody();
 		
+		var user = userRepository.findById(userId)
+	    .orElseThrow(() -> new NetPickzException(ErrorCode.USER_NOT_FOUND));
+		
+		var tmdbSessionResponse =  tmdbClient.createGuestSession().getBody();
+		if(tmdbSessionResponse == null) {
+			throw new NetPickzException(ErrorCode.TMDB_SESSION_NOT_FOUND);
+		}
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
         var zdt = ZonedDateTime.parse(tmdbSessionResponse.getExpiresAt(), formatter);
         var expiresAt = Timestamp.from(zdt.toInstant());
@@ -45,7 +50,7 @@ public class SessionServiceimpl implements SessionService {
                 .id(IdGenerator.getId("SS_"))
 				.sessionId(tmdbSessionResponse.getGuestSessionId())
 				.expiresAt(expiresAt)
-                .userEntity(UserEntity.builder().userId(userId).build())
+                .userEntity(user)
 				.build());
         
         var sessionDto = sessionMapper.sessionToSessionDTO(sessionInfo);
@@ -65,13 +70,11 @@ public class SessionServiceimpl implements SessionService {
     }
 
 	@Override
-	public Optional<SessionDTO> getSessionInfo2(String userId) {
-		log.debug("Find Session Info. userId={}", userId);
-		var sessionDTO = sessionRepository.findByUserId(userId);
-		if(!sessionDTO.isPresent()) {
-			return createSession(userId);
-		}
-		var instant = Instant.parse(sessionDTO.get().getExpireDate());// TODO
-		return instant.isBefore(Instant.now()) ? createSession(userId) : sessionDTO;
+	public Optional<SessionDTO> getOrCreateSessionInfo(String userId) {
+		log.debug("Find Session Info Or Create Session Info. userId={}", userId);
+		
+		return sessionRepository.findByUserId(userId)
+		.filter(session -> Instant.parse(session.getExpireDate()).isAfter(Instant.now()))
+		.or(() -> createSession(userId));
 	}
 }
