@@ -81,6 +81,16 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 		.execute();
 	}
 	
+	@Override
+	public Optional<UserInfoEntity> findByEmail(UserDTO userDTO) {
+		return  Optional.ofNullable(queryFactory
+				.selectFrom(userInfoEntity)
+				.join(userInfoEntity.userEntity, userEntity)
+				.fetchJoin()
+				.where(userIdEq(userDTO.getUserId()), isActive(), emailEq(userDTO.getEmail()))
+				.fetchOne());
+	}
+
 	private BooleanExpression userIdEq(String userId) {
 		return StringUtils.hasText(userId) ? userInfoEntity.userEntity.userId.eq(userId) : null;
 	}
@@ -92,4 +102,5 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 	private BooleanExpression isActive() {
 		return userInfoEntity.state.eq(StateType.정상);
 	}
+
 }

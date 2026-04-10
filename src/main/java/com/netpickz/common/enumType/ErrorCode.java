@@ -61,6 +61,7 @@ public enum ErrorCode {
 	TMDB_SIMILARLIST_NOT_FOUND("TMDB_017", "TMDB내 비슷한 영화 목록 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 	TMDB_MOVIELIST_SEARCH_NOT_FOUND("TMDB_018", "TMDB내 검색 영화 결과 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 	TMDB_MOVIELIST_FILTER_NOT_FOUND("TMDB_019", "TMDB내 필터 영화 결과 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	TMDB_SESSION_NOT_FOUND("TMDB_020", "TMDB내 세션 결과 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 	
 	SERVER_ERROR("SERVER_001", "요청을 처리 중 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
@@ -70,10 +71,13 @@ public enum ErrorCode {
 	
 	RATING_DELETE_FAILED("RATING_001", "평가 정보 삭제에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 	RATING_ADD_FAILED("RATING_002", "평가 정보 저장에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-	RATING_NOT_FOUND("RATING_003", "평가 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	RATING_NOT_FOUND("RATING_003", "평가 정보가 존재하지 않습니다.", HttpStatus.NO_CONTENT),
 
 	USER_NOT_FOUND("USER_001", "사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 	USER_PASSWORD_INVALID("USER_002", "사용자 비밀번호가 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
+	PASSWORD_SAME_AS_OLD("USER_003", "기존 비밀번호와 동일합니다.", HttpStatus.BAD_REQUEST),
+	USER_EMAIL_NOT_FOUND("USER_004", "해당 이메일을 가진 사용자가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+	USER_EMAIL_DUPLICATE("USER_005", "해당 이메일을 사용하는 사용자가 이미 존재합니다.", HttpStatus.BAD_REQUEST),
 
 	SESSION_NOT_FOUND("SESSION_001", "세션 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
 
