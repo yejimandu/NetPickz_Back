@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public TokenDTO createToken(String username) {
 		log.debug("Create Token. userId={}", username);
-		var access = jwtUtil.createJwt(Constants.ACCESS, username,  600000L); // 10분
+		var access = jwtUtil.createJwt(Constants.ACCESS, username,  3600000L); // 60분
 		var refresh = jwtUtil.createJwt(Constants.REFRESH, username, 604800000L); // 7일
 	    
 	    if(!Constants.GUEST_TYPE.equals(username)) {
