@@ -41,4 +41,6 @@ public interface UserService {
 
 	String pwResetVerify(String userId, String token);
 
+	Optional<UserDTO> getUserInfoByEmail(UserDTO userDTO);
+
 }

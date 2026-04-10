@@ -8,7 +8,6 @@ import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.netpickz.core.movie.entity.MovieInfoEntity;
-import com.netpickz.core.movie.entity.MovieProviderEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

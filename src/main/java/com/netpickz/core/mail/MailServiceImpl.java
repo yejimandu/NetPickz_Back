@@ -17,10 +17,12 @@ import com.netpickz.common.constants.Constants;
 import com.netpickz.common.enumType.ErrorCode;
 import com.netpickz.common.handler.NetPickzException;
 import com.netpickz.common.jwt.JWTUtil;
+import com.netpickz.core.user.dto.UserDTO;
 import com.netpickz.core.user.service.UserService;
 
 import io.lettuce.core.RedisException;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +39,9 @@ public class MailServiceImpl implements MailService {
 	@Value("${spring.mail.username}")
 	String mailName;
 	
+	@Value("${app.front-url}")
+	String frontUrl;
+	
 	@Override
 	public String sendCode(String email) {
 		var msg = Constants.MAIL_SEND_FAIL;
@@ -44,6 +49,13 @@ public class MailServiceImpl implements MailService {
 		if(email == null || email.isBlank()) {
 			throw new NetPickzException(ErrorCode.MAIL_INVALID);
 		}
+		
+		// email 중복 체크
+		var user = userService.getUserInfoByEmail(UserDTO.builder().email(email).build());
+		if(user.isPresent()) {
+			throw new NetPickzException(ErrorCode.USER_EMAIL_DUPLICATE);
+		}
+		
 		var code = String.format("%06d", new Random().nextInt(999999));
 		
 		var sMailMessage  = new SimpleMailMessage();
@@ -89,31 +101,38 @@ public class MailServiceImpl implements MailService {
 	}
 
 	@Override
-	public String sendPwChgUrl(String email,  String userId) {
+	public String sendPwChgUrl(UserDTO userDTO, HttpServletRequest request) {
 		var msg = Constants.RESET_SEND_FAIL;
-		var token = jwtUtil.createJwt(Constants.RESET_TOKEN, userId,  600000L);
-		var resetUrl = "http://localhost:5173/user/pwChg?token="+token; // TODO
-		
+		var email = userDTO.getEmail();
 		if(email == null || email.isBlank()) {
 			throw new NetPickzException(ErrorCode.MAIL_INVALID);
 		}
 		
+		var user = userService.getUserInfoByEmail(userDTO)
+				.orElseThrow(() -> new NetPickzException(ErrorCode.USER_EMAIL_NOT_FOUND));
+		
+		var userId = user.getUserId();
+		request.setAttribute("userId", userId);
+		var token = jwtUtil.createJwt(Constants.RESET_TOKEN, userId,  600000L);
+		var resetUrl = frontUrl + "/user/pwChg?token="+token; 
+		
 		try {
-		    var message = mailSender.createMimeMessage();
-		    var helper = new MimeMessageHelper(message, true, "UTF-8");
-	
-		    helper.setFrom(mailName);
-		    helper.setTo(email);
-		    helper.setSubject(Constants.MAIL_SUBJECT_PW_CHG);
-		    var htmlContent = "<p>비밀번호를 재설정하려면 아래 링크를 클릭하세요.</p>"
-		        + "<a href='" + resetUrl + "'>비밀번호 재설정</a>";
-	
-		    helper.setText(htmlContent, true); // true → HTML 모드
-		    mailSender.send(message);
-		    
-		    redisTemplate.opsForValue().set("pwReset:" + userId, token, 10 , TimeUnit.MINUTES );
+			var message = mailSender.createMimeMessage();
+			var helper = new MimeMessageHelper(message, true, "UTF-8");
+			
+			helper.setFrom(mailName);
+			helper.setTo(email);
+			helper.setSubject(Constants.MAIL_SUBJECT_PW_CHG);
+			var htmlContent = "<p>비밀번호를 재설정하려면 아래 링크를 클릭하세요.</p>"
+					+ "<a href='" + resetUrl + "'>비밀번호 재설정</a>";
+			
+			helper.setText(htmlContent, true); // true → HTML 모드
+			mailSender.send(message);
+			
+			redisTemplate.opsForValue().set("pwReset:" + userId, token, 10 , TimeUnit.MINUTES );
+			msg = Constants.RESET_SEND_SUCCESS;
 		}catch (MailException e) {
-//			log.error("Fail to mail Send. To={}, subject={}, msg={}", sMailMessage.getTo(), sMailMessage.getSubject(), e.getMessage(), e);
+			log.error("Fail to pw reset mail Send. To={},  msg={}", email,  e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.MAIL_SEND_FAIL);
 		}catch (MessagingException e) {
 			System.out.println("ddddd");
@@ -121,7 +140,6 @@ public class MailServiceImpl implements MailService {
 			log.error("Fail to Connect Redis. pwReset:  userId={}, token={}, msg={}", userId, token , e.getMessage(), e);
 			throw new NetPickzException(ErrorCode.REDIS_CONNECT_FAIL);
 		}
-		msg = Constants.RESET_SEND_SUCCESS;
 		return msg;
 	}
 	
