@@ -45,8 +45,5 @@ public interface MovieService {
 
 	boolean deleteRatingByUserId(String movieId, String userId);
 
-	// TODO 추후 
-	List<MovieDTO> getMovieCertification(String id);
-
 	Optional<RatingDTO> getRatingByUserId(String movieId, String userId);
 }
