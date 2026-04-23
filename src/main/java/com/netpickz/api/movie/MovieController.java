@@ -70,17 +70,6 @@ public class MovieController {
 		return ResponseEntity.status(HttpStatus.OK).body(movieDTO.orElse(null));
 	}
 	
-	// TODO 영화 관람등급 및 출시일 날 조회 api ( 추후 getMovieInfo api랑 합칠 계획)
-	@Operation(summary = "특정 영화 관람등급 조회", description = "영화 ID 기준으로 해당 영화의 관람 등급을 조회합니다.")
-	@Parameter(name = "movieId", required = true, description = "영화 ID")
-	@GetMapping("/{id}/certification")
-	public ResponseEntity<List<MovieDTO>> getMovieCertificationByMovieId(   
-			@PathVariable(name = "id") String id) {
-		var movieDTOs = movieService.getMovieCertification(id);
-		return ResponseEntity.status(HttpStatus.OK).body(movieDTOs);
-	}
-	
-	
 	@Operation(summary = "타입별 영화 목록 조회", description = "원하는 영화 목록을 조회합니다.")
 	@Parameter(name = "category" , description = "영화 카테고리")
 	@GetMapping("/category")
