@@ -463,6 +463,19 @@ public class MovieServiceImpl implements MovieService {
 		throw new NetPickzException(ErrorCode.RATING_NOT_FOUND);
 	}
 
+	@Override
+	public List<MovieDTO> getMovieCertification(String id) {
+		log.debug("get Certification. id={}", id);
+		var tmdbResponse = tmdbClient.getReleaseDateList(TmdbMovieRequest.builder().movieId(Integer.valueOf(id)).build()).getBody();
+		if(tmdbResponse == null) {
+			throw new NetPickzException(ErrorCode.TMDB_MOVIE_NOT_FOUND);
+		}
+		var res = tmdbResponse.getResults().stream().filter(e -> e.getCountryCode().equals("KR")).toList();
+		var movieDtos = movieMapper.tmdbReleaseDateToMovieDto(res);
+		log.info("movie certification Found. count={}", movieDtos.size());
+		return movieDtos;
+	}
+	
 	// TODO
 	private List<TmdbMovieResponse> getKrReleasedTmdbMovies(List<TmdbMovieResponse> krReleasedMovies,
 			TmdbMovieListResponse tmdbMoviesResponse , int size) {

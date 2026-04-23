@@ -40,7 +40,6 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-	// 미사용 여기부터 -----
 	// step1 
 	public ResponseEntity<TmdbTokenResponse> createRequestToken() {
 		return webClient
@@ -82,7 +81,7 @@ public class TmdbClient  {
 				.toEntity(TmdbSessionResponse.class)
 				.block();
 	} 
-	// 미사용 여기까지 -----
+	
 	
 	public ResponseEntity<TmdbGenreListResponse> getGenreList(){
 		return webClient
@@ -138,9 +137,9 @@ public class TmdbClient  {
 	
 	
 	// /movie/now_playing 
-	// /movie/popular
-	// /movie/top_rated
-	// /movie/upcoming
+			// /movie/popular
+			// /movie/top_rated
+			// /movie/upcoming
 	public ResponseEntity<TmdbMovieListResponse> getMovieList(TmdbMovieCategory tmdbMovieCategory, int page) {
 		return webClient
 			    .method(HttpMethod.GET)
@@ -278,20 +277,6 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-	// Release Dates
-	public ResponseEntity<TmdbMovieReleaseDateListResponse> getReleaseDateList(TmdbMovieRequest request) {
-		return webClient
-				.method(HttpMethod.GET)
-				.uri(uriBuilder -> uriBuilder
-			    	.path("/movie/{movie_id}/release_dates")
-			    	.queryParam("api_key", apiKey)
-					.build(request.getMovieId()))
-				.retrieve()
-				.toEntity(TmdbMovieReleaseDateListResponse.class)
-				.block();
-	} 
-	
-	// 미사용
 	public ResponseEntity<TmdbMovieResponse> ratingListByUser(TmdbMovieRequest request) {
 		return webClient
 				.method(HttpMethod.DELETE)
@@ -309,7 +294,18 @@ public class TmdbClient  {
 				.block();
 	} 
 	
-
+	// TODO Release Dates
+	public ResponseEntity<TmdbMovieReleaseDateListResponse> getReleaseDateList(TmdbMovieRequest request) {
+		return webClient
+				.method(HttpMethod.GET)
+				.uri(uriBuilder -> uriBuilder
+			    	.path("/movie/{movie_id}/release_dates")
+			    	.queryParam("api_key", apiKey)
+					.build(request.getMovieId()))
+				.retrieve()
+				.toEntity(TmdbMovieReleaseDateListResponse.class)
+				.block();
+	} 
 	
 	
 }

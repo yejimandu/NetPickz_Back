@@ -40,6 +40,11 @@ public interface MovieMapper {
 	@Mapping(source = "tmdbMovie.overview", target = "overView")
 	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie);
 	
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
+	@Mapping(source = "tmdbMovie.overview", target = "overView")
+	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie, String movieId);
+	
 	@Mapping(target = "genres", ignore = true)
 	@Mapping(target = "originalLanguage", ignore = true)
 	@Mapping(target = "providerId", ignore = true)
@@ -59,6 +64,11 @@ public interface MovieMapper {
 	@Mapping(target = "originalLanguage", ignore = true)
 	@Mapping(source = "certificationEntity.certificationId", target = "certification")
 	MovieDTO entityToDto(MovieInfoEntity movieInfoEntity);
+	
+//	MovieDTO movieToMovieDTO(MovieInfoEntity movieInfoEntity);
+	
+//	MovieEntity tmdbMovieToEntity(TmdbMovieResponse tmdbMovie);
+//	MovieInfoEntity tmdbMovieToInfoEntity(TmdbMovieResponse tmdbMovie);
 	
 	@Mapping(source = "genreIds", target = "genres")
 	@Mapping(target = "providerId", ignore = true)
@@ -97,6 +107,7 @@ public interface MovieMapper {
         }
         return tmdbMovie.getReleaseDates().get(0).getReleaseDate();
     }
+
 	
 	@Mapping(source = "providerId", target = "id")
 	@Mapping(source = "providerName", target = "name")
