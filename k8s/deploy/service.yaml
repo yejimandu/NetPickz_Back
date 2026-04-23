@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: netpickz-test
+  name: netpickz-test
+  labels:
+    part-of: k8s-netpickz
+    component: backend-server
+    name: api-tester
+    instance: netpickz-test
+    version: 1.0.0
+    managed-by: kubectl
+spec:
+  selector:
+    part-of: k8s-netpickz
+    component: backend-server
+    name: api-tester
+    instance: netpickz-test
+  ports:
+    - port: 80
+      targetPort: http
+      nodePort: 32121
+  type: NodePort
