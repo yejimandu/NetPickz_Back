@@ -6,7 +6,7 @@ metadata:
   labels:
     part-of: k8s-netpickz
     component: backend-server
-    name: api-tester
+    name: netpickz_back
     instance: netpickz-test
     version: 1.0.0
     managed-by: kubectl
@@ -14,7 +14,7 @@ spec:
   selector:
     part-of: k8s-netpickz
     component: backend-server
-    name: api-tester
+    name: netpickz_back
     instance: netpickz-test
   ports:
     - port: 80
