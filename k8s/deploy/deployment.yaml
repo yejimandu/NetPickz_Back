@@ -2,12 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: netpickz-test
-  name: netpickz-test
+  name: netpickz-back
   labels:
     part-of: k8s-netpickz
     component: backend-server
     name: netpickz_back
-    instance: netpickz-test
+    instance: netpickz-back
     version: 1.0.0
     managed-by: kubectl
 spec:
@@ -16,7 +16,7 @@ spec:
       part-of: k8s-netpickz
       component: backend-server
       name: netpickz_back
-      instance: netpickz-test
+      instance: netpickz-back
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -26,7 +26,7 @@ spec:
         part-of: k8s-netpickz
         component: backend-server
         name: netpickz_back
-        instance: netpickz-test
+        instance: netpickz-back
         version: 1.0.0
     spec:
       nodeSelector:
