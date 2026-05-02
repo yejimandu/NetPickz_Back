@@ -53,7 +53,7 @@ public class SecurityConfig {
 		
 		http
 			//.csrf( auth -> auth.disable())
-			.csrf(AbstractHttpConfigurer::disable) 		
+			.csrf().disable()	
 			.cors((cors) -> cors.configurationSource(corsConfigurationSource))	
 			//.cors().and().csrf().disable()
 			.formLogin((auth) -> auth.disable())								// 폼 로그인 disable
