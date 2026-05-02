@@ -35,7 +35,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "http://localhost:5173") //
+//@CrossOrigin(origins = "http://localhost:5173") //
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/movies")
