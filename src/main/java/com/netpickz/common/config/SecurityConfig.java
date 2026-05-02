@@ -54,7 +54,8 @@ public class SecurityConfig {
 		http
 			.csrf( auth -> auth.disable()) 		
 			.cors((cors) -> cors.configurationSource(corsConfigurationSource))	
-			//.cors().and().csrf().disable()
+			//.cors().and()
+			.csrf().disable()
 			.formLogin((auth) -> auth.disable())								// 폼 로그인 disable
 			.httpBasic((auth) -> auth.disable())								// http basic 인증 방식 disable
 			.authorizeHttpRequests((auth) -> auth								// 경로별 인가 작업
