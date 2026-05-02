@@ -52,7 +52,8 @@ public class SecurityConfig {
 	public SecurityFilterChain filterchain(HttpSecurity http , @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource, AuthenticationConfiguration authenticationConfiguration) throws Exception{
 		
 		http
-			.csrf( auth -> auth.disable())
+			//.csrf( auth -> auth.disable())
+			.csrf(AbstractHttpConfigurer::disable) 		
 			.cors((cors) -> cors.configurationSource(corsConfigurationSource))	
 			//.cors().and().csrf().disable()
 			.formLogin((auth) -> auth.disable())								// 폼 로그인 disable
