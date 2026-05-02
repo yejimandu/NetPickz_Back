@@ -59,7 +59,7 @@ public class SecurityConfig {
 			.httpBasic((auth) -> auth.disable())								// http basic 인증 방식 disable
 			.authorizeHttpRequests((auth) -> auth								// 경로별 인가 작업
 				.requestMatchers(HttpMethod.POST, "/users", "/movies/search/multi").permitAll() 
-				.requestMatchers("/users/pw/reset", "/users/pw/reset/verify", ).authenticated()
+				.requestMatchers("/users/pw/reset", "/users/pw/reset/verify" ).authenticated()
 				.requestMatchers(HttpMethod.GET, "/users/**").permitAll() 
                 .requestMatchers("/auth/**", "/auth/login", "/auth/logout","/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/movies/**", "/mail/pw/send").permitAll()  // TODO 추후에 패스 조절 필요
