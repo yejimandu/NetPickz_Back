@@ -32,8 +32,8 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
       containers:
-        - name: api-tester-2121
-          image: yeji3479/netpickz_back:v1.0.0
+        - name: netpickz_back
+          image: yeji3479/netpickz_back:v1.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
