@@ -6,7 +6,7 @@ metadata:
   labels:
     part-of: k8s-netpickz
     component: backend-server
-    name: netpickz_back
+    name: netpickz-back
     instance: netpickz-back
     version: 1.0.1
     managed-by: kubectl
@@ -14,7 +14,7 @@ spec:
   selector:
     part-of: k8s-netpickz
     component: backend-server
-    name: netpickz_back
+    name: netpickz-back
     instance: netpickz-back
   ports:
     - port: 80
