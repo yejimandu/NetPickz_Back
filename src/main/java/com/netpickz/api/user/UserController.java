@@ -54,7 +54,6 @@ public class UserController {
 	@PostMapping("")
 	public ResponseEntity<UserDTO> createUser(
 			@org.springframework.web.bind.annotation.RequestBody UserRequest request) {
-		log.info("body={}", request);
 		var userDto = userService.createUser(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(userDto.orElse(null));
 	}
