@@ -33,7 +33,7 @@ spec:
         kubernetes.io/hostname: k8s-master
       containers:
         - name: netpickz-back
-          image: yeji3479/netpickz_back:v1.0.1
+          image: yeji3479/netpickz-back:v1.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
