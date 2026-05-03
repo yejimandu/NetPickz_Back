@@ -6,7 +6,7 @@ metadata:
   labels:
     part-of: k8s-netpickz
     component: backend-server
-    name: netpickz_back
+    name: netpickz-back
     instance: netpickz-back
     version: 1.0.1
     managed-by: kubectl
@@ -32,7 +32,7 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
       containers:
-        - name: netpickz_back
+        - name: netpickz-back
           image: yeji3479/netpickz_back:v1.0.1
           imagePullPolicy: Always
           ports:
