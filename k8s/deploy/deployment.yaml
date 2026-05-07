@@ -15,7 +15,7 @@ spec:
     matchLabels:
       part-of: k8s-netpickz
       component: backend-server
-      name: netpickz_back
+      name: netpickz-back
       instance: netpickz-back
   replicas: 1
   strategy:
@@ -25,7 +25,7 @@ spec:
       labels:
         part-of: k8s-netpickz
         component: backend-server
-        name: netpickz_back
+        name: netpickz-back
         instance: netpickz-back
         version: 1.0.1
     spec:
