@@ -2,21 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: netpickz-test
-  name: netpickz-test
+  name: netpickz-back
   labels:
     part-of: k8s-netpickz
     component: backend-server
-    name: api-tester
-    instance: netpickz-test
-    version: 1.0.0
+    name: netpickz-back
+    instance: netpickz-back
+    version: 1.0.1
     managed-by: kubectl
 spec:
   selector:
     matchLabels:
       part-of: k8s-netpickz
       component: backend-server
-      name: api-tester
-      instance: netpickz-test
+      name: netpickz-back
+      instance: netpickz-back
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -25,16 +25,19 @@ spec:
       labels:
         part-of: k8s-netpickz
         component: backend-server
-        name: api-tester
-        instance: netpickz-test
-        version: 1.0.0
+        name: netpickz-back
+        instance: netpickz-back
+        version: 1.0.1
     spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
       containers:
-        - name: api-tester-2121
-          image: yeji3479/api-tester:v1.0.0
+        - name: netpickz-back
+          image: yeji3479/netpickz-back:v1.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
+          envFrom:
+            - secretRef:
+                name: netpickz-back-sec
