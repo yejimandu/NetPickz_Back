@@ -29,8 +29,10 @@ Spring Boot 기반으로 사용자 인증, 영화 정보 조회, 추천 기능�
 - WebClient
 - TMDB API
 
-## 📁 프로젝트 구조(계속 수정 예정)
+## 📁 프로젝트 구조
 ```bash
+├── k8s
+│    └── docker            # 빌드 및 배포 관련 설정 파일
 ├── src/main/java/
 │   └── com.netpickz/
         │
