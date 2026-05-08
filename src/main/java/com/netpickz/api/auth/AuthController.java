@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "http://localhost:5173") // 
+//@CrossOrigin(origins = "http://localhost:5173") // 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
