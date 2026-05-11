@@ -65,10 +65,11 @@ public class AuthServiceImpl implements AuthService {
 	    var cookie = ResponseCookie
 	    		.from("refresh", refresh)
 	    		.httpOnly(true)
-	    		.secure(true)
+	    		.secure(false)    // HTTP 환경에서는 false
 	    		.path("/")
-//	            .sameSite("None") // CORS 환경에서 중요! 백엔드와 프론트 도메인 주소가 다를 때
-	            .sameSite("Strict")  // TODO 나중에 서버 올릴 떄 이거로 백엔드와 프론트 도메인 주소가 동일 할 때.
+//	            .sameSite("None")    // CORS 환경에서 중요! 백엔드와 프론트 도메인 주소가 다를 때 ( Secure=true랑 같이 써야함.)
+			 	.sameSite("Lax")     // http환경에서 백엔드와 프론트 도메인 주소가 다를 때.
+//	            .sameSite("Strict")  // 백엔드와 프론트 도메인 주소가 동일 할 때.
 	    		.maxAge(Duration.ofDays(7))
 	    		.build();
 	    
