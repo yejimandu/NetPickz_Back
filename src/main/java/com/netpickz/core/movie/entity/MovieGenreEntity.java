@@ -2,38 +2,48 @@ package com.netpickz.core.movie.entity;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.netpickz.common.entity.GenreEntity;
+import com.netpickz.core.movie.entity.pk.MovieGenrePK;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
 @Table(name="movie_genre")
+@Builder
+@ToString(exclude = {"movieEntity", "genreEntity"})
 public class MovieGenreEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	@EmbeddedId
+	private MovieGenrePK id;
 	
     @ManyToOne
-    @JoinColumn(name = "movie_id ", nullable = true)
+    @MapsId("movieId") // PK의 movieId와 매핑
+    @JoinColumn(name="movie_id")
     private MovieEntity movieEntity;
 	
-    @OneToOne
-    @JoinColumn(name = "genre_id ", nullable = true)
+    @ManyToOne
+    @MapsId("genreId") // PK의 genreId와 매핑
+    @JoinColumn(name = "genre_id")
     private GenreEntity genreEntity;
 	
-	@Column(name="created_at")
+	@Column(name="created_at",  nullable = false)
+	@CreationTimestamp
 	private Timestamp createdAt;
+	
 }

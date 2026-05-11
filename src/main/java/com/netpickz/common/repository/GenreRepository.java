@@ -2,10 +2,8 @@ package com.netpickz.common.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.netpickz.common.entity.CertificationEntity;
 import com.netpickz.common.entity.GenreEntity;
-import com.netpickz.core.movie.entity.MovieEntity;
 
-public interface GenreRepository extends JpaRepository<GenreEntity, Integer>{
+public interface GenreRepository extends JpaRepository<GenreEntity, String>{
 
 }
