@@ -67,6 +67,7 @@ public class AuthServiceImpl implements AuthService {
 	    		.httpOnly(true)
 	    		.secure(false)    // HTTP 환경에서는 false
 	    		.path("/")
+			    .domain("192.168.56.30")
 //	            .sameSite("None") // CORS 환경에서 중요! 백엔드와 프론트 도메인 주소가 다를 때
 	            .sameSite("Strict")  // TODO 나중에 서버 올릴 떄 이거로 백엔드와 프론트 도메인 주소가 동일 할 때.
 	    		.maxAge(Duration.ofDays(7))
