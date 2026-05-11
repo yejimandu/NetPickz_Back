@@ -15,8 +15,7 @@ Spring Boot 기반으로 사용자 인증, 영화 정보 조회, 추천 기능�
   - Swagger 문서화 (SpringDoc 기반)
   - 기능 로그 및 Daily Log 작성
   - Git 브랜치 전략 수립 및 버전 관리
-- 프런트 개발 전반 담당(예정)
-- DB 전반 담당(예정)
+- DB 전반 담당
 
 
 ## 🧱 기술 스택
@@ -24,7 +23,8 @@ Spring Boot 기반으로 사용자 인증, 영화 정보 조회, 추천 기능�
 - Spring Boot 3.x
 - Gradle
 - JPA (Hibernate)
-- Spring Security (JWT 예정)
+- Spring Security
+- JWT
 - SpringDoc OpenAPI (Swagger UI)
 - WebClient
 - TMDB API
@@ -56,7 +56,7 @@ README에서는 주요 기능만 요약해 작성하여 상세 엔드포인트�
 
 ## 🗂️ 브랜치 전략
 - main: 배포용 안정 버전
-- dev: 개발 통합 브랜치
+- dev: 개발 통합 브랜치 // 현재는 테스트 배포 중이여서 dev 기준으로 사용
 - feature/*: 기능 단위 작업 브랜치
 
 ## 🧠 개발 로그
